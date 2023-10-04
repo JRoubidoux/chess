@@ -172,7 +172,7 @@ public class QueenMoveTests {
 
 
     @Test
-    @DisplayName("Queen Completely Blocked")
+    @DisplayName("chess.Queen Completely Blocked")
     public void queenStuck() {
 
         /*

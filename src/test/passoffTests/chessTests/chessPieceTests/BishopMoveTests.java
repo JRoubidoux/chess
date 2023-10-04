@@ -146,7 +146,7 @@ public class BishopMoveTests {
 
 
     @Test
-    @DisplayName("Bishop Completely Blocked")
+    @DisplayName("chess.Bishop Completely Blocked")
     public void stuck() {
 
         /*

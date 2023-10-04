@@ -408,7 +408,7 @@ public class ChessGameTests {
 
     @ParameterizedTest
     @EnumSource(value = ChessPiece.PieceType.class, names = {"QUEEN", "ROOK", "KNIGHT", "BISHOP"})
-    @DisplayName("Pawn Promotion")
+    @DisplayName("chess.Pawn Promotion")
     public void promotionMoves(ChessPiece.PieceType promotionType) throws InvalidMoveException {
 
         board.addPiece(TestFactory.getNewPosition(7, 3),
@@ -635,7 +635,7 @@ public class ChessGameTests {
 
 
     @Test
-    @DisplayName("Pinned King Causes Stalemate")
+    @DisplayName("Pinned chess.King Causes Stalemate")
     public void stalemate() {
 
         /*
@@ -886,7 +886,7 @@ public class ChessGameTests {
             ChessPosition rookPosition = TestFactory.getNewPosition(5, 6);
             board.addPiece(rookPosition, rook);
 
-            //Enemy Rook causing -xray check (white rook can't move out of line)
+            //Enemy chess.Rook causing -xray check (white rook can't move out of line)
             board.addPiece(TestFactory.getNewPosition(5, 2),
                     TestFactory.getNewPiece(ChessGame.TeamColor.BLACK, ChessPiece.PieceType.ROOK));
             board.addPiece(TestFactory.getNewPosition(5, 8),
@@ -1020,7 +1020,7 @@ public class ChessGameTests {
 
 
         @Test
-        @DisplayName("King Cannot Move Into Check")
+        @DisplayName("chess.King Cannot Move Into Check")
         public void noPutSelfInDanger() {
 
         /*

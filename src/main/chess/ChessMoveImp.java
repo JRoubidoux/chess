@@ -1,6 +1,10 @@
+package chess;
+
 import chess.ChessMove;
 import chess.ChessPiece;
 import chess.ChessPosition;
+
+import java.util.Objects;
 
 public class ChessMoveImp implements ChessMove {
 
@@ -9,18 +13,17 @@ public class ChessMoveImp implements ChessMove {
     private ChessPosition endPos = null;
     private ChessPiece.PieceType promoType;
 
-    private boolean validPromotion;
 
     public ChessMoveImp(ChessPosition start, ChessPosition end) {
         startPos = start;
         endPos = end;
-        validPromotion = false;
+        promoType = null;
     }
 
-    public ChessMoveImp(ChessPosition start, ChessPosition end, boolean promotion) {
+    public ChessMoveImp(ChessPosition start, ChessPosition end, ChessPiece.PieceType type) {
         startPos = start;
         endPos = end;
-        validPromotion = promotion;
+        promoType = type;
     }
 
 
@@ -40,11 +43,6 @@ public class ChessMoveImp implements ChessMove {
         return endPos;
     }
 
-    public boolean getValidPromotion() { return validPromotion;}
-
-    public void setPromotionPiece(ChessPiece.PieceType promotionPiece) {
-        promoType = promotionPiece;
-    }
 
     /**
      * Gets the type of piece to promote a pawn to if pawn promotion is part of this
@@ -55,5 +53,18 @@ public class ChessMoveImp implements ChessMove {
     @Override
     public ChessPiece.PieceType getPromotionPiece() {
         return promoType;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        ChessMoveImp that = (ChessMoveImp) o;
+        return Objects.equals(startPos, that.startPos) && Objects.equals(endPos, that.endPos) && promoType == that.promoType;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(startPos, endPos, promoType);
     }
 }

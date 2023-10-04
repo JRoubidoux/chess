@@ -1,7 +1,4 @@
-import chess.ChessBoard;
-import chess.ChessGame;
-import chess.ChessMove;
-import chess.ChessPosition;
+package chess;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -87,7 +84,10 @@ public class Pawn extends ChessPieceImp{
         if (board.getPiece(upOneRow) == null) {
             // Check if we move into the top row for promotion purposes
             if (valueOfOneRowUp == endRow) {
-                validPawnMoves.add(new ChessMoveImp(myPosition, upOneRow, true));
+                validPawnMoves.add(new ChessMoveImp(myPosition, upOneRow, PieceType.QUEEN));
+                validPawnMoves.add(new ChessMoveImp(myPosition, upOneRow, PieceType.ROOK));
+                validPawnMoves.add(new ChessMoveImp(myPosition, upOneRow, PieceType.KNIGHT));
+                validPawnMoves.add(new ChessMoveImp(myPosition, upOneRow, PieceType.BISHOP));
             }
             else {
                 validPawnMoves.add(new ChessMoveImp(myPosition, upOneRow));
@@ -145,8 +145,11 @@ public class Pawn extends ChessPieceImp{
     private void checkPawnAttackMove(Collection<ChessMove> validPawnMoves, ChessBoard board, ChessPosition myPosition, int newRowNum, ChessPositionImp upperDiagPos) {
         if (board.getPiece(upperDiagPos) != null) {
             if (board.getPiece(upperDiagPos).getTeamColor() != this.getTeamColor()) {
-                if (newRowNum == 7) {
-                    validPawnMoves.add(new ChessMoveImp(myPosition, upperDiagPos, true));
+                if ((newRowNum == 7) || (newRowNum == 0)) {
+                    validPawnMoves.add(new ChessMoveImp(myPosition, upperDiagPos, PieceType.QUEEN));
+                    validPawnMoves.add(new ChessMoveImp(myPosition, upperDiagPos, PieceType.ROOK));
+                    validPawnMoves.add(new ChessMoveImp(myPosition, upperDiagPos, PieceType.KNIGHT));
+                    validPawnMoves.add(new ChessMoveImp(myPosition, upperDiagPos, PieceType.BISHOP));
                 }
                 else {
                     validPawnMoves.add(new ChessMoveImp(myPosition, upperDiagPos));
