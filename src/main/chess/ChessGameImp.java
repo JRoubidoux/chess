@@ -5,13 +5,18 @@ import chess.*;
 import java.util.Collection;
 
 public class ChessGameImp implements ChessGame {
+
+    private ChessBoard chessBoard = new ChessBoardImp();
+    private ChessGame.TeamColor currentTurn = TeamColor.WHITE;
+
+
     /**
      * @return Which team's turn it is
      */
 
     @Override
     public TeamColor getTeamTurn() {
-        return null;
+        return currentTurn;
     }
 
     /**
@@ -21,7 +26,7 @@ public class ChessGameImp implements ChessGame {
      */
     @Override
     public void setTeamTurn(TeamColor team) {
-
+        currentTurn = team;
     }
 
     /**
@@ -88,7 +93,7 @@ public class ChessGameImp implements ChessGame {
      */
     @Override
     public void setBoard(ChessBoard board) {
-
+        chessBoard.resetBoard();
     }
 
     /**
@@ -98,6 +103,6 @@ public class ChessGameImp implements ChessGame {
      */
     @Override
     public ChessBoard getBoard() {
-        return null;
+        return chessBoard;
     }
 }

@@ -17,6 +17,12 @@ public class ChessBoardImp implements ChessBoard {
         chessBoard[row][column] = piece;
     }
 
+    public void removePiece(ChessPosition position) {
+        var row = position.getRow();
+        var column = position.getColumn();
+        chessBoard[row][column] = null;
+    }
+
     /**
      * Gets a chess piece on the chessboard
      *
