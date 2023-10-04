@@ -11,9 +11,13 @@ public class ChessBoardImp implements ChessBoard {
      * @param piece    the piece to add
      */
 
+    private ChessPiece[][] chessBoard = new ChessPiece[8][8];
+
     @Override
     public void addPiece(ChessPosition position, ChessPiece piece) {
-
+        var row = position.getRow();
+        var column = position.getColumn();
+        chessBoard[row][column] = piece;
     }
 
     /**
@@ -25,7 +29,9 @@ public class ChessBoardImp implements ChessBoard {
      */
     @Override
     public ChessPiece getPiece(ChessPosition position) {
-        return null;
+        var row = position.getRow();
+        var column = position.getColumn();
+        return chessBoard[row][column];
     }
 
     /**
@@ -34,6 +40,12 @@ public class ChessBoardImp implements ChessBoard {
      */
     @Override
     public void resetBoard() {
+        for (int i = 0; i < 8; i++) {
+            for (int j = 0; j < 0; j++) {
+                if (i == 0) {
 
+                }
+            }
+        }
     }
 }
