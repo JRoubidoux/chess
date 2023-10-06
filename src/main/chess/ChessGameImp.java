@@ -10,10 +10,7 @@ public class ChessGameImp implements ChessGame {
 
     private ChessBoardImp chessBoard = new ChessBoardImp();
     private ChessGame.TeamColor currentTurn = TeamColor.WHITE;
-    private boolean whiteTeamInCheckmate = false;
-    private boolean blackTeamInCheckmate = false;
-    private boolean whiteTeamInStale = false;
-    private boolean blackTeamInStale = false;
+
 
 
 
@@ -54,6 +51,42 @@ public class ChessGameImp implements ChessGame {
             return null;
         }
         else {
+            var kingPos = findKing(this.getTeamTurn());
+            var listOfMovesThatCanAttackKing = piecesHaveKingInCheck(kingPos, this.getTeamTurn());
+            if (listOfMovesThatCanAttackKing.size() > 1) {
+                if (kingPos != startPosition) {
+                    return null;
+                }
+                else {
+                    var listOfKingMoves = placesKingCanMove(kingPos, this.getTeamTurn());
+                    if (!listOfKingMoves.isEmpty()) {
+                        return listOfKingMoves;
+                    }
+                    else {
+                        return null;
+                    }
+                }
+            }
+            else if (listOfMovesThatCanAttackKing.size() == 1) {
+                if (startPosition == kingPos) {
+                    var listOfKingMoves = placesKingCanMove(kingPos, this.getTeamTurn());
+                    if (listOfKingMoves.isEmpty()) {
+                        return null;
+                    }
+                    else {
+                        return listOfKingMoves;
+                    }
+
+                }
+                var piecesCanBlockOrAttack = memberCanBlockOrCaptureAttacker(listOfMovesThatCanAttackKing, this.getTeamTurn());
+                var listOfValidMoves = new ArrayList<ChessMove>();
+
+            }
+            else {
+
+            }
+
+
             return piece.pieceMoves(chessBoard, startPosition);
         }
     }
@@ -74,6 +107,7 @@ public class ChessGameImp implements ChessGame {
         }
         else {
             if (validMoves.contains(move)) {
+
                 chessBoard.addPiece(endPos, chessBoard.getPiece(startPos));
                 chessBoard.removePiece(startPos);
                 var currentTeamColor = this.getTeamTurn();
@@ -338,12 +372,13 @@ public class ChessGameImp implements ChessGame {
             return placesKingCanMove(kingPos, teamColor).isEmpty();
         }
         else if (listOfMovesThatCanAttackKing.size() == 1) {
-            var kingCanMove = placesKingCanMove(kingPos, teamColor).isEmpty();
+            var kingCanMove = !placesKingCanMove(kingPos, teamColor).isEmpty();
+            var piecesCanBlockOrAttack = !memberCanBlockOrCaptureAttacker(listOfMovesThatCanAttackKing, teamColor).isEmpty();
             // piece can block or attack for king?
-            if ((kingCanMove == false) && (true)) {
-                return true;
+            if ((kingCanMove) && (piecesCanBlockOrAttack)) {
+                return false;
             }
-            else { return false; }
+            else { return true; }
         }
         else { return false; }
 
@@ -378,7 +413,7 @@ public class ChessGameImp implements ChessGame {
         return listOfPosKingCanMove;
     }
 
-    public Collection<ChessMove> memberCanBlockOrCaptureAttacker(Collection<ChessMove> listOfMovesThatCanAttackKing) {
+    public Collection<ChessMove> memberCanBlockOrCaptureAttacker(Collection<ChessMove> listOfMovesThatCanAttackKing, TeamColor kingColor) {
         // There will only be one attack move when we enter this function.
 
         var movesThatCanAttackKingAsArrayList = (ArrayList<ChessMove>) listOfMovesThatCanAttackKing;
@@ -387,13 +422,89 @@ public class ChessGameImp implements ChessGame {
 
         // find all positions between piece and king and the pos of the piece itself.
         var setOfSpaces = new HashSet<ChessPosition>();
-        // get all moves
-        // see if moves are valid
-        // then return stuff from here.
+
+        getSetOfSpaceBetweenAttackerAndKing(setOfSpaces, moveAttackKing);
+
+        // Get the list of all possible piece moves of our team's pieces, except for king
+        var listOfPiecesOfSameColor = new ArrayList<ChessPositionImp>();
+        for (int i = 0; i < 8; i++) {
+            for (int j = 0; j < 8; j++) {
+                var newPos = new ChessPositionImp(i, j);
+                if (chessBoard.getPiece(newPos) != null) {
+                    if ((chessBoard.getPiece(newPos).getTeamColor() == kingColor) && (newPos != moveAttackKing.getEndPosition())) {
+                        listOfPiecesOfSameColor.add(newPos);
+                    }
+                }
+            }
+        }
+
+        // List that contains all move to protect king from capture via blocking or attacking. (doesn't include the king)
+        var listOfAllTeamMoves = new ArrayList<ChessMove>();
+        for (ChessPosition pos: listOfPiecesOfSameColor) {
+            var tempListOfMoves = chessBoard.getPiece(pos).pieceMoves(this.chessBoard, pos);
+            for (ChessMove tempMove: tempListOfMoves) {
+                if (setOfSpaces.contains(tempMove.getEndPosition())) {
+                    listOfAllTeamMoves.add(tempMove);
+                }
+            }
+        }
+
+        // See which of our moves don't compromise the king's safety
+        var finalListValidMoves = new ArrayList<ChessMove>();
+        for (ChessMove move: listOfAllTeamMoves) {
+            if (!moveCompromisesSafety(move, kingColor)) {
+                finalListValidMoves.add(move);
+            }
+        }
+
+        return finalListValidMoves;
 
 
+    }
 
 
+    public boolean moveCompromisesSafety(ChessMove move, TeamColor kingColor) {
+        // this function assumes that the move can be made.
+
+        // make move
+        var oldEndPos = this.chessBoard.getPiece(move.getEndPosition());
+        var oldStartPiece = this.chessBoard.getPiece(move.getStartPosition());
+        if (oldEndPos == null) {
+            this.chessBoard.addPiece(move.getEndPosition(), oldStartPiece);
+            this.chessBoard.removePiece(move.getStartPosition());
+            if (isInCheck(kingColor)) {
+                this.chessBoard.removePiece(move.getEndPosition());
+                this.chessBoard.addPiece(move.getStartPosition(), oldStartPiece);
+                return true;
+            }
+            else {
+                this.chessBoard.removePiece(move.getEndPosition());
+                this.chessBoard.addPiece(move.getStartPosition(), oldStartPiece);
+                return false;
+            }
+        }
+        else {
+            var oldEndPiece = oldEndPos;
+            this.chessBoard.removePiece(move.getEndPosition());
+            this.chessBoard.addPiece(move.getEndPosition(), oldStartPiece);
+            this.chessBoard.removePiece(move.getStartPosition());
+            if (isInCheck(kingColor)) {
+                this.chessBoard.removePiece(move.getEndPosition());
+                this.chessBoard.addPiece(move.getStartPosition(), oldStartPiece);
+                this.chessBoard.addPiece(move.getEndPosition(), oldEndPiece);
+                return true;
+            }
+            else {
+                this.chessBoard.removePiece(move.getEndPosition());
+                this.chessBoard.addPiece(move.getStartPosition(), oldStartPiece);
+                this.chessBoard.addPiece(move.getEndPosition(), oldEndPiece);
+                return false;
+            }
+
+        }
+        // see if king still in check
+        // if not, add to list of valid moves
+        // unmake move
     }
 
 
@@ -485,7 +596,7 @@ public class ChessGameImp implements ChessGame {
 
     public void diagHelperHelper(Collection<ChessPosition> setOfSpaces, ChessPosition attackerS, int range, int rowChanger, int colChanger) {
         for (int i = 0; i < range; i++) {
-            setOfSpaces.add(new ChessPositionImp(attackerS.getRow()+rowChanger, attackerS.getColumn()+colChanger));
+            setOfSpaces.add(new ChessPositionImp(attackerS.getRow()+(rowChanger*i), attackerS.getColumn()+(colChanger*i)));
         }
     }
 
