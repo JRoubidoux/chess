@@ -2,12 +2,19 @@ package chess;
 
 import chess.*;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 
 public class ChessGameImp implements ChessGame {
 
-    private ChessBoard chessBoard = new ChessBoardImp();
+    private ChessBoardImp chessBoard = new ChessBoardImp();
     private ChessGame.TeamColor currentTurn = TeamColor.WHITE;
+    private boolean whiteTeamInCheckmate = false;
+    private boolean blackTeamInCheckmate = false;
+    private boolean whiteTeamInStale = false;
+    private boolean blackTeamInStale = false;
+
 
 
     /**
@@ -38,7 +45,17 @@ public class ChessGameImp implements ChessGame {
      */
     @Override
     public Collection<ChessMove> validMoves(ChessPosition startPosition) {
-        return null;
+        var piece = chessBoard.getPiece(startPosition);
+
+        if (piece == null) {
+            return null;
+        }
+        if (piece.getTeamColor() != this.getTeamTurn()) {
+            return null;
+        }
+        else {
+            return piece.pieceMoves(chessBoard, startPosition);
+        }
     }
 
     /**
@@ -49,6 +66,27 @@ public class ChessGameImp implements ChessGame {
      */
     @Override
     public void makeMove(ChessMove move) throws InvalidMoveException {
+        var startPos = move.getStartPosition();
+        var endPos = move.getEndPosition();
+        var validMoves = validMoves(startPos);
+        if (validMoves == null) {
+            throw new InvalidMoveException();
+        }
+        else {
+            if (validMoves.contains(move)) {
+                chessBoard.addPiece(endPos, chessBoard.getPiece(startPos));
+                chessBoard.removePiece(startPos);
+                var currentTeamColor = this.getTeamTurn();
+                if (currentTeamColor == TeamColor.WHITE) {
+                    this.setTeamTurn(TeamColor.BLACK);
+                } else {
+                    this.setTeamTurn(TeamColor.WHITE);
+                }
+            }
+            else {
+                throw new InvalidMoveException();
+            }
+        }
 
     }
 
@@ -60,8 +98,229 @@ public class ChessGameImp implements ChessGame {
      */
     @Override
     public boolean isInCheck(TeamColor teamColor) {
-        return false;
+        if (teamColor == TeamColor.WHITE) {
+            var kingPos = findKing(teamColor);
+            var listOfMovesThatCanAttackKing = piecesHaveKingInCheck(kingPos, teamColor);
+            return !listOfMovesThatCanAttackKing.isEmpty();
+        }
+        else {
+            var kingPos = findKing(teamColor);
+            var listOfMovesThatCanAttackKing = piecesHaveKingInCheck(kingPos, teamColor);
+            return !listOfMovesThatCanAttackKing.isEmpty();
+        }
     }
+
+    public Collection<ChessMove> piecesHaveKingInCheck(ChessPosition kingPos, TeamColor kingColor) {
+        var listOfMovesThatCanAttackKing = new ArrayList<ChessMove>();
+
+
+        // check if a knight can attack me
+        knightAttacksKing(listOfMovesThatCanAttackKing, kingPos, kingColor, 2, 1);
+        knightAttacksKing(listOfMovesThatCanAttackKing, kingPos, kingColor, 2, -1);
+        knightAttacksKing(listOfMovesThatCanAttackKing, kingPos, kingColor, 1, 2);
+        knightAttacksKing(listOfMovesThatCanAttackKing, kingPos, kingColor, 1, -2);
+        knightAttacksKing(listOfMovesThatCanAttackKing, kingPos, kingColor, -2, 1);
+        knightAttacksKing(listOfMovesThatCanAttackKing, kingPos, kingColor, -2, -1);
+        knightAttacksKing(listOfMovesThatCanAttackKing, kingPos, kingColor, -1, 2);
+        knightAttacksKing(listOfMovesThatCanAttackKing, kingPos, kingColor, -1, -2);
+
+        // check if rook or queen can attack me
+            // moves right
+        rookOrQueenAttacksKing(listOfMovesThatCanAttackKing, kingPos, kingColor, 7-kingPos.getColumn(), 1, 0);
+            //moves left
+        rookOrQueenAttacksKing(listOfMovesThatCanAttackKing, kingPos, kingColor, kingPos.getColumn(), -1, 0);
+            // moves up
+        rookOrQueenAttacksKing(listOfMovesThatCanAttackKing, kingPos, kingColor, 7-kingPos.getRow(), 0, 1);
+            // moves down
+        rookOrQueenAttacksKing(listOfMovesThatCanAttackKing, kingPos, kingColor, kingPos.getRow(), 0, -1);
+
+
+        // check if bishop or queen can attack me
+            // down and right
+        var range = Math.min(kingPos.getRow(), 7-kingPos.getColumn());
+        bishopOrQueenAttacksKing(listOfMovesThatCanAttackKing, kingPos, kingColor, range, 1, -1);
+            // down and left
+        range = Math.min(kingPos.getRow(), kingPos.getColumn());
+        bishopOrQueenAttacksKing(listOfMovesThatCanAttackKing, kingPos, kingColor, range, -1, -1);
+            // up and left
+        range = Math.min(7-kingPos.getRow(), kingPos.getColumn());
+        bishopOrQueenAttacksKing(listOfMovesThatCanAttackKing, kingPos, kingColor, range, -1, 1);
+            // up and right
+        range = Math.min(7-kingPos.getRow(), 7-kingPos.getColumn());
+        bishopOrQueenAttacksKing(listOfMovesThatCanAttackKing, kingPos, kingColor, range, 1, 1);
+
+        // check if a pawn can attack me. depends on whether I'm white or black
+        pawnAttacksKing(listOfMovesThatCanAttackKing, kingPos, kingColor);
+
+        // check if opposing king can attack me.
+        var kRow = kingPos.getRow();
+        var kCol = kingPos.getColumn();
+            // King attacked from above
+        kingAttacksKing(listOfMovesThatCanAttackKing, kingPos, kingColor, kRow+1, kCol);
+            // King attacked from above and right
+        kingAttacksKing(listOfMovesThatCanAttackKing, kingPos, kingColor, kRow+1, kCol+1);
+            // King attacked from right
+        kingAttacksKing(listOfMovesThatCanAttackKing, kingPos, kingColor, kRow, kCol+1);
+            // King attacked from below and right
+        kingAttacksKing(listOfMovesThatCanAttackKing, kingPos, kingColor, kRow-1, kCol+1);
+            // King attacked from below
+        kingAttacksKing(listOfMovesThatCanAttackKing, kingPos, kingColor, kRow-1, kCol);
+            // King attacked from below and left
+        kingAttacksKing(listOfMovesThatCanAttackKing, kingPos, kingColor, kRow-1, kCol-1);
+            // King attacked from left
+        kingAttacksKing(listOfMovesThatCanAttackKing, kingPos, kingColor, kRow, kCol-1);
+            // King attacked from above and left
+        kingAttacksKing(listOfMovesThatCanAttackKing, kingPos, kingColor, kRow+1, kCol-1);
+
+        return listOfMovesThatCanAttackKing;
+    }
+
+
+    public void kingAttacksKing(Collection<ChessMove> listOfMovesThatCanAttackKing, ChessPosition kingPos, TeamColor kingColor, int newRow, int newCol) {
+        if (((newRow < 8) && (newRow >= 0)) && ((newCol < 8) && (newCol >= 0))) {
+            var newPos = new ChessPositionImp(newRow, newCol);
+            var potKing = this.chessBoard.getPiece(newPos);
+            if ((potKing != null) && (potKing.getTeamColor() != kingColor) && (potKing.getPieceType()== ChessPiece.PieceType.KING)) {
+                listOfMovesThatCanAttackKing.add(new ChessMoveImp(newPos, kingPos));
+            }
+        }
+    }
+
+    /**
+     *
+     * Function below checks if king is in check by way of pawn.
+     *
+     * @param listOfMovesThatCanAttackKing
+     * @param kingPos
+     * @param kingColor
+     */
+    public void pawnAttacksKing(Collection<ChessMove> listOfMovesThatCanAttackKing, ChessPosition kingPos, TeamColor kingColor) {
+        if (kingColor == TeamColor.WHITE) {
+            if (kingPos.getRow() != 7) {
+                if (kingPos.getColumn() != 7) {
+                    var newPos = new ChessPositionImp(kingPos.getRow() + 1, kingPos.getColumn() + 1);
+                    var pieceUpAndRight = this.chessBoard.getPiece(newPos);
+                    if ((pieceUpAndRight != null) && (pieceUpAndRight.getPieceType() == ChessPiece.PieceType.PAWN) && (pieceUpAndRight.getTeamColor() != kingColor)) {
+                        listOfMovesThatCanAttackKing.add(new ChessMoveImp(newPos, kingPos));
+                    }
+                }
+                if (kingPos.getColumn() != 0) {
+                    var newPos = new ChessPositionImp(kingPos.getRow() + 1, kingPos.getColumn() - 1);
+                    var pieceUpAndLeft = this.chessBoard.getPiece(newPos);
+                    if ((pieceUpAndLeft != null) && (pieceUpAndLeft.getPieceType() == ChessPiece.PieceType.PAWN) && (pieceUpAndLeft.getTeamColor() != kingColor)) {
+                        listOfMovesThatCanAttackKing.add(new ChessMoveImp(newPos, kingPos));
+                    }
+                }
+            }
+        }
+        else {
+            if (kingPos.getRow() != 0) {
+                if (kingPos.getColumn() != 7) {
+                    var newPos = new ChessPositionImp(kingPos.getRow() - 1, kingPos.getColumn() + 1);
+                    var pieceBelowAndRight = this.chessBoard.getPiece(newPos);
+                    if ((pieceBelowAndRight != null) && (pieceBelowAndRight.getPieceType() == ChessPiece.PieceType.PAWN) && (pieceBelowAndRight.getTeamColor() != kingColor)) {
+                        listOfMovesThatCanAttackKing.add(new ChessMoveImp(newPos, kingPos));
+                    }
+                }
+                if (kingPos.getColumn() != 0) {
+                    var newPos = new ChessPositionImp(kingPos.getRow() - 1, kingPos.getColumn() - 1);
+                    var pieceBelowAndLeft = this.chessBoard.getPiece(newPos);
+                    if ((pieceBelowAndLeft != null) && (pieceBelowAndLeft.getPieceType() == ChessPiece.PieceType.PAWN) && (pieceBelowAndLeft.getTeamColor() != kingColor)) {
+                        listOfMovesThatCanAttackKing.add(new ChessMoveImp(newPos, kingPos));
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * Function below checks if king can be put in check by a knight
+     *
+     * @param listOfMovesThatCanAttackKing
+     * @param kingPos
+     * @param kingColor
+     * @param rowChanger
+     * @param colChanger
+     */
+    public void knightAttacksKing(Collection<ChessMove> listOfMovesThatCanAttackKing, ChessPosition kingPos, TeamColor kingColor, int rowChanger, int colChanger){
+        var rowNum = kingPos.getRow();
+        var colNum = kingPos.getColumn();
+
+        var newRow = rowNum + rowChanger;
+        if ((newRow < 8) && (newRow) >= 0) {
+            var newCol = colNum + colChanger;
+            if ((newCol < 8) && (newCol >=0)) {
+                var newPos = new ChessPositionImp(newRow, newCol);
+                var potentialKnight = this.chessBoard.getPiece(newPos);
+                if ((potentialKnight != null) && (potentialKnight.getPieceType() == ChessPiece.PieceType.KNIGHT) && (potentialKnight.getTeamColor() != kingColor)) {
+                    listOfMovesThatCanAttackKing.add(new ChessMoveImp(newPos, kingPos));
+                }
+            }
+        }
+    }
+
+    /**
+     * Function below checks if the king is in check by a rook or a queen.
+     *
+     * @param listOfMovesThatCanAttackKing
+     * @param kingPos
+     * @param kingColor
+     * @param range
+     * @param colChanger
+     * @param rowChanger
+     */
+    public void rookOrQueenAttacksKing(Collection<ChessMove> listOfMovesThatCanAttackKing, ChessPosition kingPos, TeamColor kingColor, int range, int colChanger, int rowChanger) {
+        var newRow = kingPos.getRow();
+        var newCol = kingPos.getColumn();
+
+        for (int i = 0; i < range; i++) {
+            newRow += rowChanger;
+            newCol += colChanger;
+            var newPos = new ChessPositionImp(newRow, newCol);
+            var potRookOrQueen = this.chessBoard.getPiece(newPos);
+            if ((potRookOrQueen != null) && ((potRookOrQueen.getPieceType() == ChessPiece.PieceType.ROOK) || (potRookOrQueen.getPieceType() == ChessPiece.PieceType.QUEEN)) && (potRookOrQueen.getTeamColor() != kingColor)) {
+                listOfMovesThatCanAttackKing.add(new ChessMoveImp(newPos, kingPos));
+                break;
+            }
+            else if (potRookOrQueen != null) {
+                break;
+
+            }
+        }
+    }
+
+    /**
+     *
+     * Function below checks if King is in check by a bishop or queen.
+     *
+     * @param listOfMovesThatCanAttackKing
+     * @param kingPos
+     * @param kingColor
+     * @param rangeToCheck
+     * @param colChanger
+     * @param rowChanger
+     */
+    public void bishopOrQueenAttacksKing(Collection<ChessMove> listOfMovesThatCanAttackKing, ChessPosition kingPos, TeamColor kingColor, int rangeToCheck, int colChanger, int rowChanger) {
+        // Check to see how far we can go diagonally
+        var newRowNum = kingPos.getRow();
+        var newColNum = kingPos.getColumn();
+
+        for (int i = 0; i < rangeToCheck; i++) {
+            newRowNum += rowChanger;
+            newColNum += colChanger;
+            var newPos = new ChessPositionImp(newRowNum, newColNum);
+            var potBishopOrQueen = this.chessBoard.getPiece(newPos);
+            if ((potBishopOrQueen != null) && (potBishopOrQueen.getTeamColor() != kingColor) && ((potBishopOrQueen.getPieceType() == ChessPiece.PieceType.BISHOP) || (potBishopOrQueen.getPieceType() == ChessPiece.PieceType.QUEEN))) {
+                listOfMovesThatCanAttackKing.add(new ChessMoveImp(newPos, kingPos));
+                break;
+            }
+            else if (potBishopOrQueen != null) {
+                break;
+            }
+
+        }
+    }
+
 
     /**
      * Determines if the given team is in checkmate
@@ -71,8 +330,247 @@ public class ChessGameImp implements ChessGame {
      */
     @Override
     public boolean isInCheckmate(TeamColor teamColor) {
-        return false;
+
+        var kingPos = findKing(teamColor);
+        var listOfMovesThatCanAttackKing = piecesHaveKingInCheck(kingPos, teamColor);
+        if (listOfMovesThatCanAttackKing.size() > 1) {
+            // See if king can move somewhere safely.
+            return placesKingCanMove(kingPos, teamColor).isEmpty();
+        }
+        else if (listOfMovesThatCanAttackKing.size() == 1) {
+            var kingCanMove = placesKingCanMove(kingPos, teamColor).isEmpty();
+            // piece can block or attack for king?
+            if ((kingCanMove == false) && (true)) {
+                return true;
+            }
+            else { return false; }
+        }
+        else { return false; }
+
     }
+
+    public ChessPosition findKing(TeamColor color) {
+        for (int i = 0; i < 8; i++) {
+            for (int j = 0; j < 8; j++) {
+                var newPos = new ChessPositionImp(i, j);
+                if (this.chessBoard.getPiece(newPos) != null) {
+                    if (this.chessBoard.getPiece(newPos).getPieceType() == ChessPiece.PieceType.KING) {
+                        if (this.chessBoard.getPiece(newPos).getTeamColor() == color) {
+                            return newPos;
+                        }
+                    }
+                }
+            }
+        }
+
+        return null;
+    }
+
+    public Collection<ChessMove> placesKingCanMove(ChessPosition kingPos, TeamColor kingColor) {
+        var listOfPosKingCanMove = new ArrayList<ChessMove>();
+        var listOfKingMoves = (ArrayList<ChessMove>) this.chessBoard.getPiece(kingPos).pieceMoves(this.chessBoard, kingPos);
+        for (ChessMove currMove : listOfKingMoves) {
+            var listOfAttackers = piecesHaveKingInCheck(currMove.getEndPosition(), kingColor);
+            if (listOfAttackers.isEmpty()) {
+                listOfPosKingCanMove.add(currMove);
+            }
+        }
+        return listOfPosKingCanMove;
+    }
+
+    public Collection<ChessMove> memberCanBlockOrCaptureAttacker(Collection<ChessMove> listOfMovesThatCanAttackKing) {
+        // There will only be one attack move when we enter this function.
+
+        var movesThatCanAttackKingAsArrayList = (ArrayList<ChessMove>) listOfMovesThatCanAttackKing;
+        var moveAttackKing = movesThatCanAttackKingAsArrayList.get(0);
+        var pieceThatCanAttackKing = chessBoard.getPiece(moveAttackKing.getStartPosition()).getPieceType();
+
+        // find all positions between piece and king and the pos of the piece itself.
+        var setOfSpaces = new HashSet<ChessPosition>();
+        // get all moves
+        // see if moves are valid
+        // then return stuff from here.
+
+
+
+
+    }
+
+
+    public void getSetOfSpaceBetweenAttackerAndKing(Collection<ChessPosition> setOfSpaces, ChessMove moveAttackKing) {
+        var attackerS = moveAttackKing.getStartPosition();
+        var attackerE = moveAttackKing.getEndPosition();
+
+        if (piecePosIsHorToKing(attackerS, attackerE)) {
+            horHelper(setOfSpaces, attackerS, attackerE);
+        }
+        else if (piecePosIsVerToKing(attackerS, attackerE)) {
+            verHelper(setOfSpaces, attackerS, attackerE);
+        }
+        else if (piecePosIsDiagToKing(attackerS, attackerE)) {
+            diagHelper(setOfSpaces, attackerS, attackerE);
+        }
+        else {
+            setOfSpaces.add(attackerS);
+        }
+    }
+
+
+    public boolean piecePosIsHorToKing(ChessPosition piecePos, ChessPosition kingPos) {
+        return (piecePos.getRow() == kingPos.getRow());
+    }
+
+    public void horHelper(Collection<ChessPosition> setOfSpaces, ChessPosition attackerS, ChessPosition kingPos) {
+        if (attackerS.getColumn() > kingPos.getColumn()) {
+            var range = attackerS.getColumn() - kingPos.getColumn();
+            for (int i = 0; i < range; i++) {
+                setOfSpaces.add(new ChessPositionImp(attackerS.getRow(), attackerS.getColumn()-i));
+            }
+        }
+        else {
+            var range = kingPos.getColumn() - attackerS.getColumn();
+            for (int i = 0; i < range; i++) {
+                setOfSpaces.add(new ChessPositionImp(attackerS.getRow(), attackerS.getColumn()+i));
+            }
+        }
+    }
+
+    public boolean piecePosIsVerToKing(ChessPosition piecePos, ChessPosition kingPos) {
+        return (piecePos.getColumn() == kingPos.getColumn());
+    }
+
+    public void verHelper(Collection<ChessPosition> setOfSpaces, ChessPosition attackerS, ChessPosition kingPos) {
+        if (attackerS.getRow() > kingPos.getRow()) {
+            var range = attackerS.getRow() - kingPos.getRow();
+            for (int i = 0; i < range; i++) {
+                setOfSpaces.add(new ChessPositionImp(attackerS.getColumn(), attackerS.getRow()-i));
+            }
+        }
+        else {
+            var range = kingPos.getRow() - attackerS.getRow();
+            for (int i = 0; i < range; i++) {
+                setOfSpaces.add(new ChessPositionImp(attackerS.getColumn(), attackerS.getRow()+i));
+            }
+        }
+    }
+
+    public boolean piecePosIsDiagToKing(ChessPosition piecePos, ChessPosition kingPos) {
+        var slope = (piecePos.getRow()-kingPos.getRow())/(piecePos.getColumn()-kingPos.getColumn());
+        return ((slope == 1) || (slope == -1));
+    }
+
+    public void diagHelper(Collection<ChessPosition> setOfSpaces, ChessPosition attackerS, ChessPosition kingPos) {
+        var slope = (attackerS.getRow()-kingPos.getRow())/(attackerS.getColumn()-kingPos.getColumn());
+        if (slope == 1) {
+            if (attackerS.getColumn() < kingPos.getColumn()) {
+                var range = kingPos.getColumn() - attackerS.getColumn();
+                diagHelperHelper(setOfSpaces, attackerS, range, 1, 1);
+            }
+            else {
+                var range = attackerS.getColumn() - kingPos.getColumn();
+                diagHelperHelper(setOfSpaces, attackerS, range, -1, -1);
+            }
+        }
+        else {
+            if (attackerS.getColumn() < kingPos.getColumn()) {
+                var range = kingPos.getColumn() - attackerS.getColumn();
+                diagHelperHelper(setOfSpaces, attackerS, range, -1, 1);
+            }
+            else {
+                var range = attackerS.getColumn() - kingPos.getColumn();
+                diagHelperHelper(setOfSpaces, attackerS, range, 1, -1);
+            }
+        }
+    }
+
+    public void diagHelperHelper(Collection<ChessPosition> setOfSpaces, ChessPosition attackerS, int range, int rowChanger, int colChanger) {
+        for (int i = 0; i < range; i++) {
+            setOfSpaces.add(new ChessPositionImp(attackerS.getRow()+rowChanger, attackerS.getColumn()+colChanger));
+        }
+    }
+
+/**
+    public Collection<ChessMove> listOfBlocksOrAttacks(ChessMoveImp moveAttackKing, ChessPieceImp pieceAttackKing) {
+
+
+        // if attacker is knight, get all pieces who can attack knight.
+        if (pieceAttackKing.getPieceType() == ChessPiece.PieceType.KNIGHT) {
+
+        }
+        // if attacker is rook or queen, get all pieces who can attack or block.
+
+        // if attacker is bishop or queen, get all pieces who can attack or block.
+
+        // if attacker is pawn, get all pieces who can attack or block.
+    }
+
+    public void movesToProtectKing(Collection<ChessMove> listOfMovesToProtectKing, HashSet<ChessPosition> setOfPlacesToMoveProtectors, ChessPositionImp kingPos, TeamColor kingColor) {
+        var listOfPiecesOfSameColor = new ArrayList<ChessPositionImp>();
+        for (int i = 0; i < 8; i++) {
+            for (int j = 0; j < 8; j++) {
+                var newPos = new ChessPositionImp(i, j);
+                if ((chessBoard.getPiece(newPos).getTeamColor() == kingColor) && (newPos != kingPos)) {
+                    listOfPiecesOfSameColor.add(newPos);
+                }
+            }
+        }
+
+        // List that contains all move to protect king from capture via blocking or attacking. (doesn't include the king)
+        var listOfAllTeamMoves = new ArrayList<ChessMove>();
+        for (ChessPosition pos: listOfPiecesOfSameColor) {
+            var tempListOfMoves = chessBoard.getPiece(pos).pieceMoves(this.chessBoard, pos);
+            for (ChessMove tempMove: tempListOfMoves) {
+                if (setOfPlacesToMoveProtectors.contains(tempMove.getEndPosition())) {
+                    listOfAllTeamMoves.add(tempMove);
+                }
+            }
+        }
+
+        // List that contains all valid moves to protect king from attack via blocking or attacking
+        var listOfValidMoves = new ArrayList<ChessMove>();
+        for (ChessMove move: listOfAllTeamMoves) {
+            if ((piecePosIsHorToKing(move.getStartPosition(), kingPos)) && (!piecePosIsHorToKing(move.getEndPosition(), kingPos))) {
+                // do thing
+            }
+            else if ((piecePosIsVerToKing(move.getStartPosition(), kingPos)) && (!piecePosIsVerToKing(move.getEndPosition(), kingPos))) {
+                // do thing
+            }
+            else if ((piecePosIsDiagToKing(move.getStartPosition(), kingPos)) && (!piecePosIsDiagToKing(move.getEndPosition(), kingPos))) {
+                // do thing
+            }
+            else {
+                listOfValidMoves.add(move);
+            }
+        }
+
+    }
+
+    public boolean piecePosIsHorToKing(ChessPosition piecePos, ChessPosition kingPos) {
+        return (piecePos.getRow() == kingPos.getRow());
+    }
+
+    public boolean HorChecker(ChessPosition piecePos, int colChanger) {
+        var currCol = piecePos.getColumn();
+        var range = 0;
+        if (colChanger == -1) {
+            range = piecePos.getColumn();
+        }
+        else { range = 7-piecePos.getColumn(); }
+        for (int i = 0; i < range; i++) {
+            currCol -= 1;
+            var newPos = new ChessPositionImp(piecePos.getRow(), currCol);
+
+        }
+    }
+
+    public boolean piecePosIsVerToKing(ChessPosition piecePos, ChessPosition kingPos) {
+        return (piecePos.getColumn() == kingPos.getColumn());
+    }
+
+    public boolean piecePosIsDiagToKing(ChessPosition piecePos, ChessPosition kingPos) {
+        var slope = (piecePos.getRow()-kingPos.getRow())/(piecePos.getColumn()-kingPos.getColumn());
+        return ((slope == 1) || (slope == -1));
+    } **/
 
     /**
      * Determines if the given team is in stalemate, which here is defined as having
@@ -93,7 +591,7 @@ public class ChessGameImp implements ChessGame {
      */
     @Override
     public void setBoard(ChessBoard board) {
-        chessBoard.resetBoard();
+        this.chessBoard = (ChessBoardImp) board;
     }
 
     /**
