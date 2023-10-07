@@ -68,6 +68,7 @@ public class ChessGameImp implements ChessGame {
                 }
             }
             else if (listOfMovesThatCanAttackKing.size() == 1) {
+                // Piece is King
                 if (startPosition == kingPos) {
                     var listOfKingMoves = placesKingCanMove(kingPos, this.getTeamTurn());
                     if (listOfKingMoves.isEmpty()) {
@@ -78,16 +79,40 @@ public class ChessGameImp implements ChessGame {
                     }
 
                 }
-                var piecesCanBlockOrAttack = memberCanBlockOrCaptureAttacker(listOfMovesThatCanAttackKing, this.getTeamTurn());
-                var listOfValidMoves = new ArrayList<ChessMove>();
+                // Piece isn't King
+                else {
+                    var piecesCanBlockOrAttack = memberCanBlockOrCaptureAttacker(listOfMovesThatCanAttackKing, this.getTeamTurn());
+                    var listOfValidMoves = new ArrayList<ChessMove>();
+                    for (ChessMove move: piecesCanBlockOrAttack) {
+                        var newPos = move.getStartPosition();
+                        if (newPos.equals(startPosition)) {
+                            listOfValidMoves.add(move);
+                        }
+                    }
+                    if (listOfValidMoves.isEmpty()) {
+                        return null;
+                    }
+                    else {
+                        return listOfValidMoves;
+                    }
+                }
 
             }
             else {
-
+                var listOfAllPieceMoves = this.chessBoard.getPiece(startPosition).pieceMoves(chessBoard, startPosition);
+                var finalListValidMoves = new ArrayList<ChessMove>();
+                for (ChessMove move: listOfAllPieceMoves) {
+                    if (!moveCompromisesSafety(move, this.getTeamTurn())) {
+                        finalListValidMoves.add(move);
+                    }
+                }
+                if (finalListValidMoves.isEmpty()) {
+                    return null;
+                }
+                else {
+                    return finalListValidMoves;
+                }
             }
-
-
-            return piece.pieceMoves(chessBoard, startPosition);
         }
     }
 
@@ -107,14 +132,26 @@ public class ChessGameImp implements ChessGame {
         }
         else {
             if (validMoves.contains(move)) {
-
-                chessBoard.addPiece(endPos, chessBoard.getPiece(startPos));
-                chessBoard.removePiece(startPos);
-                var currentTeamColor = this.getTeamTurn();
-                if (currentTeamColor == TeamColor.WHITE) {
-                    this.setTeamTurn(TeamColor.BLACK);
-                } else {
-                    this.setTeamTurn(TeamColor.WHITE);
+                if (chessBoard.getPiece(endPos) == null) {
+                    chessBoard.addPiece(endPos, returnCorrectPiece(move));
+                    chessBoard.removePiece(startPos);
+                    var currentTeamColor = this.getTeamTurn();
+                    if (currentTeamColor == TeamColor.WHITE) {
+                        this.setTeamTurn(TeamColor.BLACK);
+                    } else {
+                        this.setTeamTurn(TeamColor.WHITE);
+                    }
+                }
+                else {
+                    chessBoard.removePiece(endPos);
+                    chessBoard.addPiece(endPos, returnCorrectPiece(move));
+                    chessBoard.removePiece(startPos);
+                    var currentTeamColor = this.getTeamTurn();
+                    if (currentTeamColor == TeamColor.WHITE) {
+                        this.setTeamTurn(TeamColor.BLACK);
+                    } else {
+                        this.setTeamTurn(TeamColor.WHITE);
+                    }
                 }
             }
             else {
@@ -122,6 +159,20 @@ public class ChessGameImp implements ChessGame {
             }
         }
 
+    }
+
+    public ChessPiece returnCorrectPiece(ChessMove move) {
+        if (chessBoard.getPiece(move.getStartPosition()).getPieceType() == ChessPiece.PieceType.PAWN) {
+            if (move.getPromotionPiece() != null) {
+                return new ChessPieceImp(this.getTeamTurn(), move.getPromotionPiece());
+            }
+            else {
+                return (ChessPieceImp) chessBoard.getPiece(move.getStartPosition());
+            }
+        }
+        else {
+            return (ChessPieceImp) chessBoard.getPiece(move.getStartPosition());
+        }
     }
 
     /**
@@ -146,7 +197,9 @@ public class ChessGameImp implements ChessGame {
 
     public Collection<ChessMove> piecesHaveKingInCheck(ChessPosition kingPos, TeamColor kingColor) {
         var listOfMovesThatCanAttackKing = new ArrayList<ChessMove>();
-
+        if (kingPos == null) {
+            return listOfMovesThatCanAttackKing;
+        }
 
         // check if a knight can attack me
         knightAttacksKing(listOfMovesThatCanAttackKing, kingPos, kingColor, 2, 1);
@@ -465,6 +518,11 @@ public class ChessGameImp implements ChessGame {
 
     public boolean moveCompromisesSafety(ChessMove move, TeamColor kingColor) {
         // this function assumes that the move can be made.
+
+        // if king isn't on board, return false
+        if (findKing(kingColor) == null) {
+            return false;
+        }
 
         // make move
         var oldEndPos = this.chessBoard.getPiece(move.getEndPosition());
