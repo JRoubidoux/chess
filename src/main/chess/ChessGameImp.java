@@ -47,9 +47,6 @@ public class ChessGameImp implements ChessGame {
         if (piece == null) {
             return null;
         }
-        if (piece.getTeamColor() != this.getTeamTurn()) {
-            return null;
-        }
         else {
             var kingPos = findKing(this.getTeamTurn());
             var listOfMovesThatCanAttackKing = piecesHaveKingInCheck(kingPos, this.getTeamTurn());
@@ -126,6 +123,9 @@ public class ChessGameImp implements ChessGame {
     public void makeMove(ChessMove move) throws InvalidMoveException {
         var startPos = move.getStartPosition();
         var endPos = move.getEndPosition();
+        if (chessBoard.getPiece(startPos).getTeamColor() != this.getTeamTurn()) {
+            throw new InvalidMoveException();
+        }
         var validMoves = validMoves(startPos);
         if (validMoves == null) {
             throw new InvalidMoveException();
