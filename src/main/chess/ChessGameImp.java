@@ -48,28 +48,30 @@ public class ChessGameImp implements ChessGame {
             return null;
         }
         else {
-            var kingPos = findKing(this.getTeamTurn());
-            var listOfMovesThatCanAttackKing = piecesHaveKingInCheck(kingPos, this.getTeamTurn());
+            var colorOfMovePiece = this.chessBoard.getPiece(startPosition).getTeamColor();
+            var kingPos = findKing(colorOfMovePiece);
+            //var kingPos = findKing(this.getTeamTurn());
+            var listOfMovesThatCanAttackKing = piecesHaveKingInCheck(kingPos, colorOfMovePiece);
             if (listOfMovesThatCanAttackKing.size() > 1) {
                 if (kingPos != startPosition) {
-                    return null;
+                    return new ArrayList<ChessMove>();
                 }
                 else {
-                    var listOfKingMoves = placesKingCanMove(kingPos, this.getTeamTurn());
+                    var listOfKingMoves = placesKingCanMove(kingPos, colorOfMovePiece);
                     if (!listOfKingMoves.isEmpty()) {
                         return listOfKingMoves;
                     }
                     else {
-                        return null;
+                        return new ArrayList<ChessMove>();
                     }
                 }
             }
             else if (listOfMovesThatCanAttackKing.size() == 1) {
                 // Piece is King
-                if (startPosition == kingPos) {
-                    var listOfKingMoves = placesKingCanMove(kingPos, this.getTeamTurn());
+                if (startPosition.equals(kingPos)) {
+                    var listOfKingMoves = placesKingCanMove(kingPos, colorOfMovePiece);
                     if (listOfKingMoves.isEmpty()) {
-                        return null;
+                        return new ArrayList<ChessMove>();
                     }
                     else {
                         return listOfKingMoves;
@@ -78,7 +80,7 @@ public class ChessGameImp implements ChessGame {
                 }
                 // Piece isn't King
                 else {
-                    var piecesCanBlockOrAttack = memberCanBlockOrCaptureAttacker(listOfMovesThatCanAttackKing, this.getTeamTurn());
+                    var piecesCanBlockOrAttack = memberCanBlockOrCaptureAttacker(listOfMovesThatCanAttackKing, colorOfMovePiece);
                     var listOfValidMoves = new ArrayList<ChessMove>();
                     for (ChessMove move: piecesCanBlockOrAttack) {
                         var newPos = move.getStartPosition();
@@ -87,7 +89,7 @@ public class ChessGameImp implements ChessGame {
                         }
                     }
                     if (listOfValidMoves.isEmpty()) {
-                        return null;
+                        return new ArrayList<ChessMove>();
                     }
                     else {
                         return listOfValidMoves;
@@ -99,12 +101,12 @@ public class ChessGameImp implements ChessGame {
                 var listOfAllPieceMoves = this.chessBoard.getPiece(startPosition).pieceMoves(chessBoard, startPosition);
                 var finalListValidMoves = new ArrayList<ChessMove>();
                 for (ChessMove move: listOfAllPieceMoves) {
-                    if (!moveCompromisesSafety(move, this.getTeamTurn())) {
+                    if (!moveCompromisesSafety(move, colorOfMovePiece)) {
                         finalListValidMoves.add(move);
                     }
                 }
                 if (finalListValidMoves.isEmpty()) {
-                    return null;
+                    return new ArrayList<ChessMove>();
                 }
                 else {
                     return finalListValidMoves;
@@ -127,7 +129,7 @@ public class ChessGameImp implements ChessGame {
             throw new InvalidMoveException();
         }
         var validMoves = validMoves(startPos);
-        if (validMoves == null) {
+        if (validMoves.isEmpty()) {
             throw new InvalidMoveException();
         }
         else {
@@ -750,7 +752,22 @@ public class ChessGameImp implements ChessGame {
      */
     @Override
     public boolean isInStalemate(TeamColor teamColor) {
-        return false;
+        // check if king is in check,
+        // if not, and king has nowhere to move
+        // then king is in stalemate
+        if (isInCheck(teamColor)) {
+            return false;
+        }
+        else {
+            var placesKingCanMove = placesKingCanMove(findKing(teamColor), teamColor);
+            if (placesKingCanMove.isEmpty()) {
+                return true;
+            }
+            else {
+                return false;
+            }
+
+        }
     }
 
     /**
