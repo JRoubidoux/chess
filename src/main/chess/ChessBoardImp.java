@@ -10,6 +10,11 @@ public class ChessBoardImp implements ChessBoard {
 
     private ChessPiece[][] chessBoard = new ChessPiece[8][8];
 
+    /**
+     *
+     * @param position where to add the piece to
+     * @param piece    the piece to add
+     */
     @Override
     public void addPiece(ChessPosition position, ChessPiece piece) {
         var row = position.getRow();
@@ -17,6 +22,10 @@ public class ChessBoardImp implements ChessBoard {
         chessBoard[row][column] = piece;
     }
 
+    /**
+     *
+     * @param position
+     */
     public void removePiece(ChessPosition position) {
         var row = position.getRow();
         var column = position.getColumn();

@@ -5,6 +5,10 @@ import java.util.Collection;
 
 public class Pawn extends ChessPieceImp{
 
+    /**
+     *
+     * @param color
+     */
     public Pawn(ChessGame.TeamColor color) {
         super(color, PieceType.PAWN);
     }
@@ -21,17 +25,6 @@ public class Pawn extends ChessPieceImp{
      */
     @Override
     public Collection<ChessMove> pieceMoves(ChessBoard board, ChessPosition myPosition) {
-        // 1.) This is a pawn, else we wouldn't have accessed this method.
-        // 2.) We have a layout of the chess board.
-        // 3.) We have our current position.
-
-        // a.) what is the color of this pawn?
-        // b.) what is the position of this pawn.
-        // c.) if color is x and position is y, then pawn can move forward two spaces, if there
-        // isn't a piece there already.
-        // c.1) If the pawn is of certain color and can end up in promotion location, say promotion is valid for this move
-        // d.) or a pawn can move forward 1 if there isn't a piece in front of it.
-        // e.) if there are pieces up 1 and right or left 1, pawn can attack and move there.
 
         // Create collection of Chess Moves
         var validPawnMoves = new ArrayList<ChessMove>();
@@ -45,6 +38,12 @@ public class Pawn extends ChessPieceImp{
         return validPawnMoves;
     }
 
+    /**
+     *
+     * @param validPawnMoves
+     * @param board
+     * @param myPosition
+     */
     public void pawnIsWhite(Collection<ChessMove> validPawnMoves, ChessBoard board, ChessPosition myPosition) {
 
         // Get the row number
@@ -61,6 +60,12 @@ public class Pawn extends ChessPieceImp{
         checkPawnAttackMoves(validPawnMoves, board, myPosition, pawnRowNumber, pawnColumnNumber, 1); // we want to go up.
     }
 
+    /**
+     *
+     * @param validPawnMoves
+     * @param board
+     * @param myPosition
+     */
     public void pawnIsBlack(Collection<ChessMove> validPawnMoves, ChessBoard board, ChessPosition myPosition) {
 
         // Get the row number
@@ -77,6 +82,15 @@ public class Pawn extends ChessPieceImp{
         checkPawnAttackMoves(validPawnMoves, board, myPosition, pawnRowNumber, pawnColumnNumber, -1); // we want to go up.
     }
 
+    /**
+     *
+     * @param validPawnMoves
+     * @param board
+     * @param myPosition
+     * @param pawnRowNumber
+     * @param rowOffset
+     * @param endRow
+     */
     public void pawnCanMoveOneUpOrDown(Collection<ChessMove> validPawnMoves, ChessBoard board, ChessPosition myPosition, int pawnRowNumber, int rowOffset, int endRow) {
         // This function checks if a pawn can move one forward.
         var valueOfOneRowUp = pawnRowNumber+rowOffset;
@@ -95,6 +109,15 @@ public class Pawn extends ChessPieceImp{
         }
     }
 
+    /**
+     *
+     * @param validPawnMoves
+     * @param board
+     * @param myPosition
+     * @param pawnRowNumber
+     * @param rowOffset
+     * @param pawnStartRow
+     */
     public void pawnCanMoveTwoUpOrDown(Collection<ChessMove> validPawnMoves, ChessBoard board, ChessPosition myPosition, int pawnRowNumber, int rowOffset, int pawnStartRow) {
         // This function checks if a pawn can move forward two.
 
@@ -111,6 +134,15 @@ public class Pawn extends ChessPieceImp{
         }
     }
 
+    /**
+     *
+     * @param validPawnMoves
+     * @param board
+     * @param myPosition
+     * @param pawnRowNumber
+     * @param pawnColumnNumber
+     * @param rowOffset
+     */
     public void checkPawnAttackMoves(Collection<ChessMove> validPawnMoves, ChessBoard board, ChessPosition myPosition, int pawnRowNumber, int pawnColumnNumber, int rowOffset) {
 
         // If pawn on leftmost side of board, can it attack to the upper right?
@@ -142,6 +174,14 @@ public class Pawn extends ChessPieceImp{
         }
     }
 
+    /**
+     *
+     * @param validPawnMoves
+     * @param board
+     * @param myPosition
+     * @param newRowNum
+     * @param upperDiagPos
+     */
     private void checkPawnAttackMove(Collection<ChessMove> validPawnMoves, ChessBoard board, ChessPosition myPosition, int newRowNum, ChessPositionImp upperDiagPos) {
         if (board.getPiece(upperDiagPos) != null) {
             if (board.getPiece(upperDiagPos).getTeamColor() != this.getTeamColor()) {

@@ -4,10 +4,21 @@ import java.util.ArrayList;
 import java.util.Collection;
 
 public class Knight extends ChessPieceImp{
+
+    /**
+     *
+     * @param color
+     */
     public Knight(ChessGame.TeamColor color) {
         super(color, PieceType.KNIGHT);
     }
 
+    /**
+     *
+     * @param board
+     * @param myPosition
+     * @return
+     */
     @Override
     public Collection<ChessMove> pieceMoves(ChessBoard board, ChessPosition myPosition) {
         // bishop moves diagonally on any diagonal, it cannot move past pieces of its own color nor
@@ -36,6 +47,14 @@ public class Knight extends ChessPieceImp{
         return validKnightMovesList;
     }
 
+    /**
+     *
+     * @param validKnightMovesList
+     * @param board
+     * @param myPosition
+     * @param rowChanger
+     * @param colChanger
+     */
     public void validKnightMoves(Collection<ChessMove> validKnightMovesList,ChessBoard board, ChessPosition myPosition, int rowChanger, int colChanger){
         var rowNum = myPosition.getRow();
         var colNum = myPosition.getColumn();

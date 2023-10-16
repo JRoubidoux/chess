@@ -11,11 +11,20 @@ public class ChessPieceImp implements ChessPiece {
     private ChessGame.TeamColor currentTeam;
     private ChessPiece.PieceType typePiece;
 
+    /**
+     *
+     * @param color
+     * @param type
+     */
     public ChessPieceImp(ChessGame.TeamColor color, ChessPiece.PieceType type) {
         currentTeam = color;
         typePiece = type;
     }
 
+    /**
+     *
+     * @return
+     */
     @Override
     public ChessGame.TeamColor getTeamColor() {
         return currentTeam;

@@ -4,10 +4,21 @@ import java.util.ArrayList;
 import java.util.Collection;
 
 public class Queen extends ChessPieceImp{
+
+    /**
+     *
+     * @param color
+     */
     public Queen(ChessGame.TeamColor color) {
         super(color, PieceType.QUEEN);
     }
 
+    /**
+     *
+     * @param board
+     * @param myPosition
+     * @return
+     */
     @Override
     public Collection<ChessMove> pieceMoves(ChessBoard board, ChessPosition myPosition) {
         // Queen can go right, left, up, down, not past one of its own, and not past
@@ -23,6 +34,14 @@ public class Queen extends ChessPieceImp{
         return validQueenMovesList;
     }
 
+    /**
+     *
+     * @param validRookMovesList
+     * @param board
+     * @param myPosition
+     * @param rowNum
+     * @param colNum
+     */
     public void validRookMoves(Collection<ChessMove> validRookMovesList, ChessBoard board, ChessPosition myPosition, int rowNum, int colNum) {
         // Check valid moves right of the rook
         rookMoves(validRookMovesList, board, myPosition, rowNum, colNum, 7-colNum, 1, 0);
@@ -35,6 +54,17 @@ public class Queen extends ChessPieceImp{
 
     }
 
+    /**
+     *
+     * @param validRookMovesList
+     * @param board
+     * @param myPosition
+     * @param rowNum
+     * @param colNum
+     * @param range
+     * @param colChanger
+     * @param rowChanger
+     */
     public void rookMoves(Collection<ChessMove> validRookMovesList, ChessBoard board, ChessPosition myPosition, int rowNum, int colNum, int range, int colChanger, int rowChanger) {
         var newRow = rowNum;
         var newCol = colNum;
@@ -54,6 +84,12 @@ public class Queen extends ChessPieceImp{
         }
     }
 
+    /**
+     *
+     * @param validPawnMoves
+     * @param board
+     * @param myPosition
+     */
     public void validBishopMoves(Collection<ChessMove> validPawnMoves, ChessBoard board, ChessPosition myPosition) {
         var rowNum = myPosition.getRow();
         var colNum = myPosition.getColumn();
@@ -70,6 +106,17 @@ public class Queen extends ChessPieceImp{
         checkDiagonal(validPawnMoves, board, myPosition, rowNum, colNum, range, -1, 1);
     }
 
+    /**
+     *
+     * @param validPawnMoves
+     * @param board
+     * @param myPosition
+     * @param rowNum
+     * @param colNum
+     * @param rangeToCheck
+     * @param rowOffset
+     * @param colOffset
+     */
     public void checkDiagonal(Collection<ChessMove> validPawnMoves, ChessBoard board, ChessPosition myPosition, int rowNum, int colNum, int rangeToCheck, int rowOffset, int colOffset) {
         // Check to see how far we can go diagonally
         var newRowNum = rowNum;

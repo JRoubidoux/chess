@@ -4,10 +4,21 @@ import java.util.ArrayList;
 import java.util.Collection;
 
 public class Rook extends ChessPieceImp {
+
+    /**
+     *
+     * @param color
+     */
     public Rook(ChessGame.TeamColor color) {
         super(color, PieceType.ROOK);
     }
 
+    /**
+     *
+     * @param board
+     * @param myPosition
+     * @return
+     */
     @Override
     public Collection<ChessMove> pieceMoves(ChessBoard board, ChessPosition myPosition) {
         // Rook can go right, left, up, down, not past one of its own, and not past
@@ -21,6 +32,14 @@ public class Rook extends ChessPieceImp {
         return validRookMovesList;
     }
 
+    /**
+     *
+     * @param validRookMovesList
+     * @param board
+     * @param myPosition
+     * @param rowNum
+     * @param colNum
+     */
     public void validRookMoves(Collection<ChessMove> validRookMovesList, ChessBoard board, ChessPosition myPosition, int rowNum, int colNum) {
         // Check valid moves right of the rook
         rookMoves(validRookMovesList, board, myPosition, rowNum, colNum, 7-colNum, 1, 0);
@@ -33,6 +52,17 @@ public class Rook extends ChessPieceImp {
 
     }
 
+    /**
+     *
+     * @param validRookMovesList
+     * @param board
+     * @param myPosition
+     * @param rowNum
+     * @param colNum
+     * @param range
+     * @param colChanger
+     * @param rowChanger
+     */
     public void rookMoves(Collection<ChessMove> validRookMovesList, ChessBoard board, ChessPosition myPosition, int rowNum, int colNum, int range, int colChanger, int rowChanger) {
         var newRow = rowNum;
         var newCol = colNum;

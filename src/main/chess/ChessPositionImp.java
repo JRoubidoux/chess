@@ -11,6 +11,12 @@ public class ChessPositionImp implements ChessPosition {
 
     private int row = 0;
     private int column = 0;
+
+    /**
+     *
+     * @param inputRow
+     * @param inputColumn
+     */
     public ChessPositionImp(int inputRow, int inputColumn) {
         row = inputRow;
         column = inputColumn;
@@ -36,7 +42,11 @@ public class ChessPositionImp implements ChessPosition {
         return column;
     }
 
-
+    /**
+     *
+     * @param o
+     * @return
+     */
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -45,6 +55,10 @@ public class ChessPositionImp implements ChessPosition {
         return row == that.row && column == that.column;
     }
 
+    /**
+     *
+     * @return
+     */
     @Override
     public int hashCode() {
         return Objects.hash(row, column);

@@ -5,10 +5,20 @@ import java.util.Collection;
 
 public class King extends ChessPieceImp {
 
+    /**
+     *
+     * @param color
+     */
     public King(ChessGame.TeamColor color) {
         super(color, PieceType.KING);
     }
 
+    /**
+     *
+     * @param board
+     * @param myPosition
+     * @return
+     */
     @Override
     public Collection<ChessMove> pieceMoves(ChessBoard board, ChessPosition myPosition) {
         // The king can move 1 in any direction. It can capture enemy pieces.
@@ -37,6 +47,14 @@ public class King extends ChessPieceImp {
         return validKingMovesList;
     }
 
+    /**
+     *
+     * @param validKingMovesList
+     * @param board
+     * @param myPosition
+     * @param newRow
+     * @param newCol
+     */
     public void validKingMoves(Collection<ChessMove> validKingMovesList, ChessBoard board, ChessPosition myPosition, int newRow, int newCol) {
 
 

@@ -3,11 +3,28 @@ package chess;
 import java.util.ArrayList;
 import java.util.Collection;
 
+
+/**
+ * Bishop Class that represents the Bishop Piece in a chess game.
+ *
+ */
 public class Bishop extends ChessPieceImp{
+
+    /**
+     * Constructor that instantiates the piece type and the color of the piece.
+     *
+     * @param color This is the color of the piece.
+     */
     public Bishop(ChessGame.TeamColor color) {
         super(color, PieceType.BISHOP);
     }
 
+    /**
+     *
+     * @param board
+     * @param myPosition
+     * @return
+     */
     @Override
     public Collection<ChessMove> pieceMoves(ChessBoard board, ChessPosition myPosition) {
         // bishop moves diagonally on any diagonal, it cannot move past pieces of its own color nor
@@ -21,6 +38,12 @@ public class Bishop extends ChessPieceImp{
         return validBishopMovesList;
     }
 
+    /**
+     *
+     * @param validPawnMoves
+     * @param board
+     * @param myPosition
+     */
     public void validBishopMoves(Collection<ChessMove> validPawnMoves, ChessBoard board, ChessPosition myPosition) {
         var rowNum = myPosition.getRow();
         var colNum = myPosition.getColumn();
@@ -37,6 +60,17 @@ public class Bishop extends ChessPieceImp{
         checkDiagonal(validPawnMoves, board, myPosition, rowNum, colNum, range, -1, 1);
     }
 
+    /**
+     *
+     * @param validPawnMoves
+     * @param board
+     * @param myPosition
+     * @param rowNum
+     * @param colNum
+     * @param rangeToCheck
+     * @param rowOffset
+     * @param colOffset
+     */
     public void checkDiagonal(Collection<ChessMove> validPawnMoves, ChessBoard board, ChessPosition myPosition, int rowNum, int colNum, int rangeToCheck, int rowOffset, int colOffset) {
         // Check to see how far we can go diagonally
         var newRowNum = rowNum;
