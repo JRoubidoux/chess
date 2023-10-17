@@ -14,6 +14,7 @@ public class UserDAO {
      * @param username A string that represents username.
      * @param password A string that represents a password.
      * @param email A string that represents a user's email.
+     * @throws DataAccessException If an error occurs trying to insert a new user.
      */
     public void insertNewUser(String username, String password, String email) throws DataAccessException {}
 
@@ -22,6 +23,7 @@ public class UserDAO {
      *
      * @param username A string that represents username.
      * @return Returns a User model object.
+     * @throws DataAccessException If an error occurs trying to retrieve a user.
      */
     public User retrieveUser(String username) throws DataAccessException {return null;}
 
@@ -31,6 +33,7 @@ public class UserDAO {
      * @param username A string that represents username.
      * @param password A string that represents a password.
      * @param email A string that represents a user's email.
+     * @throws DataAccessException If an error occurs trying to update a user.
      */
     public void updateUser(String username, String password, String email) throws DataAccessException {}
 
@@ -38,6 +41,7 @@ public class UserDAO {
      * Given a username, delete the User information in the DB.
      *
      * @param username A string that represents username.
+     * @throws DataAccessException If an error occurs trying to delete a user.
      */
-    public void deleteUser(String username) {}
+    public void deleteUser(String username) throws DataAccessException{}
 }
