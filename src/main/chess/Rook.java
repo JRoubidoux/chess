@@ -3,21 +3,26 @@ package chess;
 import java.util.ArrayList;
 import java.util.Collection;
 
+/**
+ * Class that represents the Rook piece in chess.
+ */
 public class Rook extends ChessPieceImp {
 
     /**
+     * Class constructor
      *
-     * @param color
+     * @param color TeamColor object. Rook's color.
      */
     public Rook(ChessGame.TeamColor color) {
         super(color, PieceType.ROOK);
     }
 
     /**
+     * Function that get the valid moves a Rook can make.
      *
-     * @param board
-     * @param myPosition
-     * @return
+     * @param board ChessBoard object. Current game board.
+     * @param myPosition ChessPosition object. Rook's position.
+     * @return List of ChessMove objects. Valid moves that the Rook can make.
      */
     @Override
     public Collection<ChessMove> pieceMoves(ChessBoard board, ChessPosition myPosition) {
@@ -33,12 +38,13 @@ public class Rook extends ChessPieceImp {
     }
 
     /**
+     * Helper function to get the valid moves a Rook can make.
      *
-     * @param validRookMovesList
-     * @param board
-     * @param myPosition
-     * @param rowNum
-     * @param colNum
+     * @param validRookMovesList List of ChessMove objects. Valid moves a Rook can make.
+     * @param board ChessBoard object. Current game board.
+     * @param myPosition ChessPosition object. Rook's position.
+     * @param rowNum An integer representing the row the Rook is on.
+     * @param colNum An integer representing the column the Rook is on.
      */
     public void validRookMoves(Collection<ChessMove> validRookMovesList, ChessBoard board, ChessPosition myPosition, int rowNum, int colNum) {
         // Check valid moves right of the rook
@@ -53,15 +59,16 @@ public class Rook extends ChessPieceImp {
     }
 
     /**
+     * Helper function to get the valid moves a Rook can make.
      *
-     * @param validRookMovesList
-     * @param board
-     * @param myPosition
-     * @param rowNum
-     * @param colNum
-     * @param range
-     * @param colChanger
-     * @param rowChanger
+     * @param validRookMovesList List of ChessMove objects. Valid moves a Rook can make.
+     * @param board ChessBoard object. Current game board.
+     * @param myPosition ChessPosition object. Rook's position.
+     * @param rowNum An integer representing the row the Rook is on.
+     * @param colNum An integer representing the column the Rook is on.
+     * @param range An integer that lets us know how far the Rook is from the edge of the board.
+     * @param colChanger An integer the represents whether we are going, up, down, or staying on the same row.
+     * @param rowChanger An integer the represents whether we are going, up, down, or staying on the same column.
      */
     public void rookMoves(Collection<ChessMove> validRookMovesList, ChessBoard board, ChessPosition myPosition, int rowNum, int colNum, int range, int colChanger, int rowChanger) {
         var newRow = rowNum;

@@ -7,10 +7,9 @@ import chess.ChessPosition;
 import java.util.Objects;
 
 /**
- *
+ * This class represents a ChessMove that can be made during the game
  */
 public class ChessMoveImp implements ChessMove {
-
 
     private ChessPosition startPos = null;
     private ChessPosition endPos = null;
@@ -18,9 +17,10 @@ public class ChessMoveImp implements ChessMove {
 
 
     /**
+     * Constructor for the class. Takes in two parameters:
      *
-     * @param start
-     * @param end
+     * @param start A ChessPosition object. The start position of a move.
+     * @param end A ChessPosition object. The end position of a move.
      */
     public ChessMoveImp(ChessPosition start, ChessPosition end) {
         startPos = start;
@@ -29,10 +29,12 @@ public class ChessMoveImp implements ChessMove {
     }
 
     /**
+     * Other constructor for the ChessMove. This accepts a promotion piece as a parameter for when a Pawn is
+     * up for promotion
      *
-     * @param start
-     * @param end
-     * @param type
+     * @param start ChessPosition object. The start position of a move.
+     * @param end ChessPosition object. The end position of a move.
+     * @param type ChessPiece.Type object. A chess piece to promote pawn to.
      */
     public ChessMoveImp(ChessPosition start, ChessPosition end, ChessPiece.PieceType type) {
         startPos = start;
@@ -41,38 +43,28 @@ public class ChessMoveImp implements ChessMove {
     }
 
 
-    /**
-     * @return ChessPosition of starting location
-     */
     @Override
     public ChessPosition getStartPosition() {
         return startPos;
     }
 
-    /**
-     * @return ChessPosition of ending location
-     */
+
     @Override
     public ChessPosition getEndPosition() {
         return endPos;
     }
 
 
-    /**
-     * Gets the type of piece to promote a pawn to if pawn promotion is part of this
-     * chess move
-     *
-     * @return Type of piece to promote a pawn to, or null if no promotion
-     */
     @Override
     public ChessPiece.PieceType getPromotionPiece() {
         return promoType;
     }
 
     /**
+     * Equals method for the ChessMove
      *
-     * @param o
-     * @return
+     * @param o Should be a ChessMove object
+     * @return Boolean value, whether the objects are the same.
      */
     @Override
     public boolean equals(Object o) {
@@ -83,8 +75,9 @@ public class ChessMoveImp implements ChessMove {
     }
 
     /**
+     * Function that returns a unique hashcode for the given object
      *
-     * @return
+     * @return An integer.
      */
     @Override
     public int hashCode() {

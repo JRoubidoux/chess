@@ -4,12 +4,11 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 
+/**
+ * This class represents the chess game. The board, pieces and rules are all found here.
+ */
 public class ChessGameImp implements ChessGame {
 
-
-    /**
-     *
-     */
     private ChessBoardImp chessBoard = new ChessBoardImp();
     private ChessGame.TeamColor currentTurn = TeamColor.WHITE;
 
@@ -17,18 +16,19 @@ public class ChessGameImp implements ChessGame {
 
 
     /**
-     * @return Which team's turn it is
+     * Return which team's turn it is
+     *
+     * @return The color of team whose turn it is.
      */
-
     @Override
     public TeamColor getTeamTurn() {
         return currentTurn;
     }
 
     /**
-     * Set's which teams turn it is
+     * Sets the current turn attribute to the right team.
      *
-     * @param team the team whose turn it is
+     * @param team The color we are setting current team to.
      */
     @Override
     public void setTeamTurn(TeamColor team) {
@@ -36,11 +36,10 @@ public class ChessGameImp implements ChessGame {
     }
 
     /**
-     * Gets a valid moves for a piece at the given location
+     * Gets valid moves for a piece at the given location, or null if no piece at startPosition
      *
-     * @param startPosition the piece to get valid moves for
-     * @return Set of valid moves for requested piece, or null if no piece at
-     * startPosition
+     * @param startPosition The start position we want to get the valid moves for.
+     * @return All the valid moves we can make.
      */
     @Override
     public Collection<ChessMove> validMoves(ChessPosition startPosition) {
@@ -53,21 +52,9 @@ public class ChessGameImp implements ChessGame {
             var colorOfMovePiece = this.chessBoard.getPiece(startPosition).getTeamColor();
             var kingPos = findKing(colorOfMovePiece);
             var listOfMovesThatCanAttackKing = piecesHaveKingInCheck(kingPos, colorOfMovePiece);
-            if (listOfMovesThatCanAttackKing.size() > 1) {
-                if (kingPos != startPosition) {
-                    return new ArrayList<ChessMove>();
-                }
-                else {
-                    var listOfKingMoves = placesKingCanMove(kingPos, colorOfMovePiece);
-                    if (!listOfKingMoves.isEmpty()) {
-                        return listOfKingMoves;
-                    }
-                    else {
-                        return new ArrayList<ChessMove>();
-                    }
-                }
-            }
-            else if (listOfMovesThatCanAttackKing.size() == 1) {
+
+            // If King is in check
+            if (listOfMovesThatCanAttackKing.size() == 1) {
                 // Piece is King
                 if (startPosition.equals(kingPos)) {
                     var listOfKingMoves = placesKingCanMove(kingPos, colorOfMovePiece);
@@ -96,8 +83,9 @@ public class ChessGameImp implements ChessGame {
                         return listOfValidMoves;
                     }
                 }
-
             }
+
+            // King is not in check
             else {
                 var listOfAllPieceMoves = this.chessBoard.getPiece(startPosition).pieceMoves(chessBoard, startPosition);
                 var finalListValidMoves = new ArrayList<ChessMove>();
@@ -119,22 +107,28 @@ public class ChessGameImp implements ChessGame {
     /**
      * Makes a move in a chess game
      *
-     * @param move chess move to preform
+     * @param move A chessmove we would like to attempt to make
      * @throws InvalidMoveException if move is invalid
      */
     @Override
     public void makeMove(ChessMove move) throws InvalidMoveException {
         var startPos = move.getStartPosition();
         var endPos = move.getEndPosition();
+
+        // If piece trying to move is not the color of the current team throw exception
         if (chessBoard.getPiece(startPos).getTeamColor() != this.getTeamTurn()) {
             throw new InvalidMoveException();
         }
+
         var validMoves = validMoves(startPos);
+
+        // If there is no piece at the position or the piece has no moves, throw exception
         if (validMoves.isEmpty()) {
             throw new InvalidMoveException();
         }
         else {
             if (validMoves.contains(move)) {
+                // If there is no piece at the end position.
                 if (chessBoard.getPiece(endPos) == null) {
                     chessBoard.addPiece(endPos, returnCorrectPiece(move));
                     chessBoard.removePiece(startPos);
@@ -145,6 +139,7 @@ public class ChessGameImp implements ChessGame {
                         this.setTeamTurn(TeamColor.WHITE);
                     }
                 }
+                // If there is an enemy piece in the end position, remove enemy piece.
                 else {
                     chessBoard.removePiece(endPos);
                     chessBoard.addPiece(endPos, returnCorrectPiece(move));
@@ -165,9 +160,11 @@ public class ChessGameImp implements ChessGame {
     }
 
     /**
+     * This is a helper function to return the right piece that should end up at the end of a move.
+     * If the piece is a pawn and has made it to the end of the board, then the piece is up for promotion.
      *
-     * @param move
-     * @return
+     * @param move The move of a piece on the chessboard.
+     * @return A ChessPiece object
      */
     public ChessPiece returnCorrectPiece(ChessMove move) {
         if (chessBoard.getPiece(move.getStartPosition()).getPieceType() == ChessPiece.PieceType.PAWN) {
@@ -184,30 +181,24 @@ public class ChessGameImp implements ChessGame {
     }
 
     /**
-     * Determines if the given team is in check
+     * Determines if the given team is in check.
      *
-     * @param teamColor which team to check for check
-     * @return True if the specified team is in check
+     * @param teamColor the color of the current team.
+     * @return True is team is in check, false otherwise.
      */
     @Override
     public boolean isInCheck(TeamColor teamColor) {
-        if (teamColor == TeamColor.WHITE) {
-            var kingPos = findKing(teamColor);
-            var listOfMovesThatCanAttackKing = piecesHaveKingInCheck(kingPos, teamColor);
-            return !listOfMovesThatCanAttackKing.isEmpty();
-        }
-        else {
-            var kingPos = findKing(teamColor);
-            var listOfMovesThatCanAttackKing = piecesHaveKingInCheck(kingPos, teamColor);
-            return !listOfMovesThatCanAttackKing.isEmpty();
-        }
+        var kingPos = findKing(teamColor);
+        var listOfMovesThatCanAttackKing = piecesHaveKingInCheck(kingPos, teamColor);
+        return !listOfMovesThatCanAttackKing.isEmpty();
     }
 
     /**
+     * See if there are any pieces that have the king in check.
      *
-     * @param kingPos
-     * @param kingColor
-     * @return
+     * @param kingPos A ChessPosition Object, represents the king's location
+     * @param kingColor A TeamColor Object, represents the king's color
+     * @return A list of moves that currently have the King in check.
      */
     public Collection<ChessMove> piecesHaveKingInCheck(ChessPosition kingPos, TeamColor kingColor) {
         var listOfMovesThatCanAttackKing = new ArrayList<ChessMove>();
@@ -215,7 +206,7 @@ public class ChessGameImp implements ChessGame {
             return listOfMovesThatCanAttackKing;
         }
 
-        // check if a knight can attack me
+        // check if a knight can attack king
         knightAttacksKing(listOfMovesThatCanAttackKing, kingPos, kingColor, 2, 1);
         knightAttacksKing(listOfMovesThatCanAttackKing, kingPos, kingColor, 2, -1);
         knightAttacksKing(listOfMovesThatCanAttackKing, kingPos, kingColor, 1, 2);
@@ -225,7 +216,7 @@ public class ChessGameImp implements ChessGame {
         knightAttacksKing(listOfMovesThatCanAttackKing, kingPos, kingColor, -1, 2);
         knightAttacksKing(listOfMovesThatCanAttackKing, kingPos, kingColor, -1, -2);
 
-        // check if rook or queen can attack me
+        // check if rook or queen can attack king
             // moves right
         rookOrQueenAttacksKing(listOfMovesThatCanAttackKing, kingPos, kingColor, 7-kingPos.getColumn(), 1, 0);
             //moves left
@@ -236,7 +227,7 @@ public class ChessGameImp implements ChessGame {
         rookOrQueenAttacksKing(listOfMovesThatCanAttackKing, kingPos, kingColor, kingPos.getRow(), 0, -1);
 
 
-        // check if bishop or queen can attack me
+        // check if bishop or queen can attack king
             // down and right
         var range = Math.min(kingPos.getRow(), 7-kingPos.getColumn());
         bishopOrQueenAttacksKing(listOfMovesThatCanAttackKing, kingPos, kingColor, range, 1, -1);
@@ -250,10 +241,10 @@ public class ChessGameImp implements ChessGame {
         range = Math.min(7-kingPos.getRow(), 7-kingPos.getColumn());
         bishopOrQueenAttacksKing(listOfMovesThatCanAttackKing, kingPos, kingColor, range, 1, 1);
 
-        // check if a pawn can attack me. depends on whether I'm white or black
+        // check if a pawn can attack king. depends on whether I'm white or black
         pawnAttacksKing(listOfMovesThatCanAttackKing, kingPos, kingColor);
 
-        // check if opposing king can attack me.
+        // check if opposing king can attack current king.
         var kRow = kingPos.getRow();
         var kCol = kingPos.getColumn();
             // King attacked from above
@@ -278,12 +269,13 @@ public class ChessGameImp implements ChessGame {
 
 
     /**
+     * Helper function to see if a king can attack another king.
      *
-     * @param listOfMovesThatCanAttackKing
-     * @param kingPos
-     * @param kingColor
-     * @param newRow
-     * @param newCol
+     * @param listOfMovesThatCanAttackKing A list of ChessMoves. A list of moves that have king in check.
+     * @param kingPos A ChessPosition object. The current location of the king.
+     * @param kingColor A TeamColor object. The color of the king.
+     * @param newRow An integer representing a row in the chess board.
+     * @param newCol An integer representing a column in the chess board.
      */
     public void kingAttacksKing(Collection<ChessMove> listOfMovesThatCanAttackKing, ChessPosition kingPos, TeamColor kingColor, int newRow, int newCol) {
         if (((newRow < 8) && (newRow >= 0)) && ((newCol < 8) && (newCol >= 0))) {
@@ -296,14 +288,14 @@ public class ChessGameImp implements ChessGame {
     }
 
     /**
-     *
      * Function below checks if king is in check by way of pawn.
      *
-     * @param listOfMovesThatCanAttackKing
-     * @param kingPos
-     * @param kingColor
+     * @param listOfMovesThatCanAttackKing A list of ChessMove objects that can attack the king.
+     * @param kingPos ChessPositionObject, King's current location.
+     * @param kingColor TeamColorObject, King's current color.
      */
     public void pawnAttacksKing(Collection<ChessMove> listOfMovesThatCanAttackKing, ChessPosition kingPos, TeamColor kingColor) {
+        // We need to know the color to see which pawns can attack.
         if (kingColor == TeamColor.WHITE) {
             if (kingPos.getRow() != 7) {
                 if (kingPos.getColumn() != 7) {
@@ -345,11 +337,11 @@ public class ChessGameImp implements ChessGame {
     /**
      * Function below checks if king can be put in check by a knight
      *
-     * @param listOfMovesThatCanAttackKing
-     * @param kingPos
-     * @param kingColor
-     * @param rowChanger
-     * @param colChanger
+     * @param listOfMovesThatCanAttackKing A list of ChessMove objects that represent pieces who have king in check
+     * @param kingPos ChessPosition Object. The King's current position
+     * @param kingColor TeamColor object. The King's color
+     * @param rowChanger An integer that represents a row the knight could be located in.
+     * @param colChanger An integer that represents a column the knight could be located in.
      */
     public void knightAttacksKing(Collection<ChessMove> listOfMovesThatCanAttackKing, ChessPosition kingPos, TeamColor kingColor, int rowChanger, int colChanger){
         var rowNum = kingPos.getRow();
@@ -371,12 +363,12 @@ public class ChessGameImp implements ChessGame {
     /**
      * Function below checks if the king is in check by a rook or a queen.
      *
-     * @param listOfMovesThatCanAttackKing
-     * @param kingPos
-     * @param kingColor
-     * @param range
-     * @param colChanger
-     * @param rowChanger
+     * @param listOfMovesThatCanAttackKing A list of ChessMove objects that represent pieces who have king in check
+     * @param kingPos ChessPosition object. King's position.
+     * @param kingColor TeamColor object. King's color
+     * @param range An integer representing how far we check on the board for a piece.
+     * @param colChanger An integer that represents whether we are going up, down or staying the same.
+     * @param rowChanger An integer that represents whether we are going left, right or staying the same.
      */
     public void rookOrQueenAttacksKing(Collection<ChessMove> listOfMovesThatCanAttackKing, ChessPosition kingPos, TeamColor kingColor, int range, int colChanger, int rowChanger) {
         var newRow = kingPos.getRow();
@@ -399,15 +391,14 @@ public class ChessGameImp implements ChessGame {
     }
 
     /**
-     *
      * Function below checks if King is in check by a bishop or queen.
      *
-     * @param listOfMovesThatCanAttackKing
-     * @param kingPos
-     * @param kingColor
-     * @param rangeToCheck
-     * @param colChanger
-     * @param rowChanger
+     * @param listOfMovesThatCanAttackKing A list of ChessMove objects that represent pieces who have king in check.
+     * @param kingPos ChessPosition object. King's position.
+     * @param kingColor TeamColor object. King's color.
+     * @param rangeToCheck An integer representing how far we check on the board for a piece.
+     * @param colChanger An integer that represents whether we are going up, down or staying the same.
+     * @param rowChanger An integer that represents whether we are going left, right or staying the same.
      */
     public void bishopOrQueenAttacksKing(Collection<ChessMove> listOfMovesThatCanAttackKing, ChessPosition kingPos, TeamColor kingColor, int rangeToCheck, int colChanger, int rowChanger) {
         // Check to see how far we can go diagonally
@@ -434,8 +425,8 @@ public class ChessGameImp implements ChessGame {
     /**
      * Determines if the given team is in checkmate
      *
-     * @param teamColor which team to check for checkmate
-     * @return True if the specified team is in checkmate
+     * @param teamColor TeamColor object. Color of team whose turn it is.
+     * @return Boolean value. Whether certain team is in checkmate.
      */
     @Override
     public boolean isInCheckmate(TeamColor teamColor) {
@@ -460,9 +451,10 @@ public class ChessGameImp implements ChessGame {
     }
 
     /**
+     * This function located where a king of a given color is located on the chessBoard
      *
-     * @param color
-     * @return
+     * @param color TeamColor object. Color of King piece we want to find.
+     * @return ChessPosition object. Location of found King.
      */
     public ChessPosition findKing(TeamColor color) {
         for (int i = 0; i < 8; i++) {
@@ -482,10 +474,11 @@ public class ChessGameImp implements ChessGame {
     }
 
     /**
+     * This function returns a list of places the king can safely move if there are any.
      *
-     * @param kingPos
-     * @param kingColor
-     * @return
+     * @param kingPos ChessPosition object. King's position
+     * @param kingColor TeamColor object. King's color.
+     * @return A List of ChessMove objects that represent where the King can move.
      */
     public Collection<ChessMove> placesKingCanMove(ChessPosition kingPos, TeamColor kingColor) {
         var listOfPosKingCanMove = new ArrayList<ChessMove>();
@@ -500,10 +493,13 @@ public class ChessGameImp implements ChessGame {
     }
 
     /**
+     * Function that determines if there are any pieces that can attack a piece that has king in check or
+     * if there are any pieces that can block the path of the piece that has the king in check.
+     * All of this without compromising the safety of the king.
      *
-     * @param listOfMovesThatCanAttackKing
-     * @param kingColor
-     * @return
+     * @param listOfMovesThatCanAttackKing A list of ChessMove objects that represent pieces who have king in check.
+     * @param kingColor TeamColor object. King's color.
+     * @return A list of ChessMove objects that represent team pieces who can move to make King safe.
      */
     public Collection<ChessMove> memberCanBlockOrCaptureAttacker(Collection<ChessMove> listOfMovesThatCanAttackKing, TeamColor kingColor) {
         // There will only be one attack move when we enter this function.
@@ -556,10 +552,11 @@ public class ChessGameImp implements ChessGame {
 
 
     /**
+     * The function checks if a given chess move would compromise the safety of the king
      *
-     * @param move
-     * @param kingColor
-     * @return
+     * @param move ChessMove object. Some move for a piece.
+     * @param kingColor TeamColor object. King Color
+     * @return Boolean value. Whether moving a piece would put the king in danger.
      */
     public boolean moveCompromisesSafety(ChessMove move, TeamColor kingColor) {
         // this function assumes that the move can be made.
@@ -609,23 +606,32 @@ public class ChessGameImp implements ChessGame {
 
 
     /**
+     * This function finds all the positions between an attacker and the king, and the position of the attacker.
      *
-     * @param setOfSpaces
-     * @param moveAttackKing
+     *
+     * @param setOfSpaces A set of ChessPosition objects. Represents space between King and attacker.
+     * @param moveAttackKing A ChessMove object. The move of the attacker that could capture the King.
      */
     public void getSetOfSpaceBetweenAttackerAndKing(Collection<ChessPosition> setOfSpaces, ChessMove moveAttackKing) {
         var attackerS = moveAttackKing.getStartPosition();
         var attackerE = moveAttackKing.getEndPosition();
 
+        // Check if an attacker is horizontal to the king
         if (piecePosIsHorToKing(attackerS, attackerE)) {
             horHelper(setOfSpaces, attackerS, attackerE);
         }
+
+        // Or Vertical
         else if (piecePosIsVerToKing(attackerS, attackerE)) {
             verHelper(setOfSpaces, attackerS, attackerE);
         }
+
+        // Or diagonal
         else if (piecePosIsDiagToKing(attackerS, attackerE)) {
             diagHelper(setOfSpaces, attackerS, attackerE);
         }
+
+        // Or if attacker is a knight
         else {
             setOfSpaces.add(attackerS);
         }
@@ -633,20 +639,22 @@ public class ChessGameImp implements ChessGame {
 
 
     /**
+     * Checks if a piece is horizontal to the king
      *
-     * @param piecePos
-     * @param kingPos
-     * @return
+     * @param piecePos ChessPosition object. Some piece's position.
+     * @param kingPos ChessPosition object. King's position.
+     * @return Boolean Value if a piece is horizontal to King.
      */
     public boolean piecePosIsHorToKing(ChessPosition piecePos, ChessPosition kingPos) {
         return (piecePos.getRow() == kingPos.getRow());
     }
 
     /**
+     * if a piece is horizontal to king, get all spaces between king and attacker, including the position of the attacker.
      *
-     * @param setOfSpaces
-     * @param attackerS
-     * @param kingPos
+     * @param setOfSpaces A set of ChessPosition objects, represents space from attacker to king.
+     * @param attackerS ChessPosition object. The start position of the attacker.
+     * @param kingPos ChessPosition object. The King's position.
      */
     public void horHelper(Collection<ChessPosition> setOfSpaces, ChessPosition attackerS, ChessPosition kingPos) {
         if (attackerS.getColumn() > kingPos.getColumn()) {
@@ -664,20 +672,22 @@ public class ChessGameImp implements ChessGame {
     }
 
     /**
+     * Checks if an attacker is vertical to the king
      *
-     * @param piecePos
-     * @param kingPos
-     * @return
+     * @param piecePos ChessPosition object. Some piece's position.
+     * @param kingPos ChessPosition object. The King's position.
+     * @return Boolean value if piece is vertical to King.
      */
     public boolean piecePosIsVerToKing(ChessPosition piecePos, ChessPosition kingPos) {
         return (piecePos.getColumn() == kingPos.getColumn());
     }
 
     /**
+     * if a piece is vertical to king, get all spaces between king and attacker, including the position of the attacker.
      *
-     * @param setOfSpaces
-     * @param attackerS
-     * @param kingPos
+     * @param setOfSpaces set of ChessPosition objects representing positions from attacker to King.
+     * @param attackerS ChessPosition object. Start position of attacker.
+     * @param kingPos ChessPosition object. King's position.
      */
     public void verHelper(Collection<ChessPosition> setOfSpaces, ChessPosition attackerS, ChessPosition kingPos) {
         if (attackerS.getRow() > kingPos.getRow()) {
@@ -695,10 +705,11 @@ public class ChessGameImp implements ChessGame {
     }
 
     /**
+     * Checks if attacker is diagonal to King.
      *
-     * @param piecePos
-     * @param kingPos
-     * @return
+     * @param piecePos ChessPosition object. Some piece's position.
+     * @param kingPos ChessPosition object. King's position.
+     * @return Boolean value if piece is diagonal to king.
      */
     public boolean piecePosIsDiagToKing(ChessPosition piecePos, ChessPosition kingPos) {
         var slope = (piecePos.getRow()-kingPos.getRow())/(piecePos.getColumn()-kingPos.getColumn());
@@ -706,10 +717,11 @@ public class ChessGameImp implements ChessGame {
     }
 
     /**
+     * if a piece is diagonal to king, get all spaces between king and attacker, including the position of the attacker.
      *
-     * @param setOfSpaces
-     * @param attackerS
-     * @param kingPos
+     * @param setOfSpaces set of ChessPosition objects. Represents positions from attacker to King.
+     * @param attackerS ChessPosition object. Attacker's start position.
+     * @param kingPos ChessPosition object. King's position.
      */
     public void diagHelper(Collection<ChessPosition> setOfSpaces, ChessPosition attackerS, ChessPosition kingPos) {
         var slope = (attackerS.getRow()-kingPos.getRow())/(attackerS.getColumn()-kingPos.getColumn());
@@ -736,12 +748,13 @@ public class ChessGameImp implements ChessGame {
     }
 
     /**
+     * This is a helper function to the diagHelper function.
      *
-     * @param setOfSpaces
-     * @param attackerS
-     * @param range
-     * @param rowChanger
-     * @param colChanger
+     * @param setOfSpaces set of ChessPosition objects. Represents the positions from attacker to King.
+     * @param attackerS ChessPosition object. Attacker's start position.
+     * @param range An integer representing how far we check on the board for a piece.
+     * @param colChanger An integer that represents whether we are going up, down or staying the same.
+     * @param rowChanger An integer that represents whether we are going left, right or staying the same.
      */
     public void diagHelperHelper(Collection<ChessPosition> setOfSpaces, ChessPosition attackerS, int range, int rowChanger, int colChanger) {
         for (int i = 0; i < range; i++) {
@@ -753,8 +766,8 @@ public class ChessGameImp implements ChessGame {
      * Determines if the given team is in stalemate, which here is defined as having
      * no valid moves
      *
-     * @param teamColor which team to check for stalemate
-     * @return True if the specified team is in stalemate, otherwise false
+     * @param teamColor TeamColor Object. Color of a given team.
+     * @return Boolean value whether team is in stalemate.
      */
     @Override
     public boolean isInStalemate(TeamColor teamColor) {
@@ -779,7 +792,7 @@ public class ChessGameImp implements ChessGame {
     /**
      * Sets this game's chessboard with a given board
      *
-     * @param board the new board to use
+     * @param board ChessBoard object.
      */
     @Override
     public void setBoard(ChessBoard board) {
@@ -789,7 +802,7 @@ public class ChessGameImp implements ChessGame {
     /**
      * Gets the current chessboard
      *
-     * @return the chessboard
+     * @return ChessBoard object: The current game's chessboard.
      */
     @Override
     public ChessBoard getBoard() {

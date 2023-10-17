@@ -3,6 +3,9 @@ package Services;
 import Req_and_Result.LogoutServiceReq;
 import Req_and_Result.LogoutServiceRes;
 
+/**
+ * Class that handles logouts on the server.
+ */
 public class LogoutService {
 
     /**

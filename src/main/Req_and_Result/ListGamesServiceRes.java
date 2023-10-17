@@ -3,8 +3,14 @@ package Req_and_Result;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+/**
+ * Response Class to support the ListGames Service class
+ */
 public class ListGamesServiceRes {
 
+    /**
+     * Class Constructor
+     */
     public ListGamesServiceRes() {
     }
 

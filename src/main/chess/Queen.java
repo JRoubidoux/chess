@@ -3,21 +3,26 @@ package chess;
 import java.util.ArrayList;
 import java.util.Collection;
 
+/**
+ * Class that represents the Queen piece in chess.
+ */
 public class Queen extends ChessPieceImp{
 
     /**
+     * Class constructor
      *
-     * @param color
+     * @param color TeamColor object. Queen's color.
      */
     public Queen(ChessGame.TeamColor color) {
         super(color, PieceType.QUEEN);
     }
 
     /**
+     * Function that finds the valid moves a Queen piece can make.
      *
-     * @param board
-     * @param myPosition
-     * @return
+     * @param board ChessBoard object. Current game board.
+     * @param myPosition ChessPosition object. Queen's position.
+     * @return List of ChessMove objects. Valid moves Queen can make.
      */
     @Override
     public Collection<ChessMove> pieceMoves(ChessBoard board, ChessPosition myPosition) {
@@ -35,12 +40,13 @@ public class Queen extends ChessPieceImp{
     }
 
     /**
+     * Helper function to get the valid moves a Queen can make.
      *
-     * @param validRookMovesList
-     * @param board
-     * @param myPosition
-     * @param rowNum
-     * @param colNum
+     * @param validRookMovesList List of ChessMove objects. Valid moves a Queen can make.
+     * @param board ChessBoard object. Current game board.
+     * @param myPosition ChessPosition object. Queen's position.
+     * @param rowNum An integer representing the row the Queen is on.
+     * @param colNum An integer representing the column the Queen is on.
      */
     public void validRookMoves(Collection<ChessMove> validRookMovesList, ChessBoard board, ChessPosition myPosition, int rowNum, int colNum) {
         // Check valid moves right of the rook
@@ -55,15 +61,16 @@ public class Queen extends ChessPieceImp{
     }
 
     /**
+     * Helper function to get the valid moves a Queen can make.
      *
-     * @param validRookMovesList
-     * @param board
-     * @param myPosition
-     * @param rowNum
-     * @param colNum
-     * @param range
-     * @param colChanger
-     * @param rowChanger
+     * @param validRookMovesList List of ChessMove objects. Valid moves a Queen can make.
+     * @param board ChessBoard object. Current game board.
+     * @param myPosition ChessPosition object. Queen's position.
+     * @param rowNum An integer representing the row the Queen is on.
+     * @param colNum An integer representing the column the Queen is on.
+     * @param range An integer that lets us know how far the Queen is from the edge of the board.
+     * @param colChanger An integer the represents whether we are going, up, down, or staying on the same row.
+     * @param rowChanger An integer the represents whether we are going, up, down, or staying on the same column.
      */
     public void rookMoves(Collection<ChessMove> validRookMovesList, ChessBoard board, ChessPosition myPosition, int rowNum, int colNum, int range, int colChanger, int rowChanger) {
         var newRow = rowNum;
@@ -85,39 +92,41 @@ public class Queen extends ChessPieceImp{
     }
 
     /**
+     * This is the same functions that are in the Bishop class.
      *
-     * @param validPawnMoves
-     * @param board
-     * @param myPosition
+     * @param validBishopMovesList List of moves that Queen can make
+     * @param board The current chessboard
+     * @param myPosition The current position of the Queen
      */
-    public void validBishopMoves(Collection<ChessMove> validPawnMoves, ChessBoard board, ChessPosition myPosition) {
+    public void validBishopMoves(Collection<ChessMove> validBishopMovesList, ChessBoard board, ChessPosition myPosition) {
         var rowNum = myPosition.getRow();
         var colNum = myPosition.getColumn();
         // check upper right
         var range = Math.min(7-rowNum, 7-colNum);
-        checkDiagonal(validPawnMoves, board, myPosition, rowNum, colNum, range, 1, 1);
+        checkDiagonal(validBishopMovesList, board, myPosition, rowNum, colNum, range, 1, 1);
         // check upper left
         range = Math.min(7-rowNum, colNum);
-        checkDiagonal(validPawnMoves, board, myPosition, rowNum, colNum, range, 1, -1);
+        checkDiagonal(validBishopMovesList, board, myPosition, rowNum, colNum, range, 1, -1);
         // check bottom left
         range = Math.min(rowNum, colNum);
-        checkDiagonal(validPawnMoves, board, myPosition, rowNum, colNum, range, -1, -1);
+        checkDiagonal(validBishopMovesList, board, myPosition, rowNum, colNum, range, -1, -1);
         range = Math.min(rowNum, 7-colNum);
-        checkDiagonal(validPawnMoves, board, myPosition, rowNum, colNum, range, -1, 1);
+        checkDiagonal(validBishopMovesList, board, myPosition, rowNum, colNum, range, -1, 1);
     }
 
     /**
+     * This is a helper function for the ValidBishopMoves function
      *
-     * @param validPawnMoves
-     * @param board
-     * @param myPosition
-     * @param rowNum
-     * @param colNum
-     * @param rangeToCheck
-     * @param rowOffset
-     * @param colOffset
+     * @param validBishopMovesList List of valid Queen moves.
+     * @param board Current Chessboard.
+     * @param myPosition The current position of the piece.
+     * @param rowNum Integer that represents the row number of the piece.
+     * @param colNum Integer that represents the column number of the piece.
+     * @param rangeToCheck How many iterations our for loop goes through.
+     * @param rowOffset Whether we are moving right or left.
+     * @param colOffset Whether we are moving up or down.
      */
-    public void checkDiagonal(Collection<ChessMove> validPawnMoves, ChessBoard board, ChessPosition myPosition, int rowNum, int colNum, int rangeToCheck, int rowOffset, int colOffset) {
+    public void checkDiagonal(Collection<ChessMove> validBishopMovesList, ChessBoard board, ChessPosition myPosition, int rowNum, int colNum, int rangeToCheck, int rowOffset, int colOffset) {
         // Check to see how far we can go diagonally
         var newRowNum = rowNum;
         var newColNum = colNum;
@@ -128,7 +137,7 @@ public class Queen extends ChessPieceImp{
             var newPos = new ChessPositionImp(newRowNum, newColNum);
             if (board.getPiece(newPos) != null) {
                 if (board.getPiece(newPos).getTeamColor() != this.getTeamColor()) {
-                    validPawnMoves.add(new ChessMoveImp(myPosition, newPos));
+                    validBishopMovesList.add(new ChessMoveImp(myPosition, newPos));
                     break;
                 }
                 else {
@@ -136,10 +145,8 @@ public class Queen extends ChessPieceImp{
                 }
             }
             else {
-                validPawnMoves.add(new ChessMoveImp(myPosition, newPos));
+                validBishopMovesList.add(new ChessMoveImp(myPosition, newPos));
             }
-
         }
-
     }
 }

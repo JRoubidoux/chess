@@ -1,7 +1,13 @@
 package Req_and_Result;
 
+/**
+ * Response Class to support the Logout Service class
+ */
 public class LogoutServiceRes {
 
+    /**
+     * Class constructor
+     */
     public LogoutServiceRes() {
     }
 

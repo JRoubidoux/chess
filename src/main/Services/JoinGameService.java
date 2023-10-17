@@ -3,6 +3,9 @@ package Services;
 import Req_and_Result.JoinGameServiceReq;
 import Req_and_Result.JoinGameServiceRes;
 
+/**
+ * Class that allows a user to join a game on the server.
+ */
 public class JoinGameService {
 
     /**

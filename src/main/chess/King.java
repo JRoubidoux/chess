@@ -3,21 +3,26 @@ package chess;
 import java.util.ArrayList;
 import java.util.Collection;
 
+/**
+ * This class represents the King piece in the chess game
+ */
 public class King extends ChessPieceImp {
 
     /**
+     * class Constructor
      *
-     * @param color
+     * @param color TeamColor Object. King's color
      */
     public King(ChessGame.TeamColor color) {
         super(color, PieceType.KING);
     }
 
     /**
+     * Return a list of valid moves the king can make.
      *
-     * @param board
-     * @param myPosition
-     * @return
+     * @param board ChessBoard object. Current game board.
+     * @param myPosition ChessPosition object. King's position.
+     * @return A list of ChessMove objects. Valid moves king can make.
      */
     @Override
     public Collection<ChessMove> pieceMoves(ChessBoard board, ChessPosition myPosition) {
@@ -48,12 +53,13 @@ public class King extends ChessPieceImp {
     }
 
     /**
+     * A helper function to the pieceMoves function
      *
-     * @param validKingMovesList
-     * @param board
-     * @param myPosition
-     * @param newRow
-     * @param newCol
+     * @param validKingMovesList A list of ChessMove objects. List of moves King can make.
+     * @param board ChessBoard object. Current game board.
+     * @param myPosition ChessPosition object. King's position.
+     * @param newRow Integer that represents a row on the chess board.
+     * @param newCol Integer that represents a column on the chess board.
      */
     public void validKingMoves(Collection<ChessMove> validKingMovesList, ChessBoard board, ChessPosition myPosition, int newRow, int newCol) {
 

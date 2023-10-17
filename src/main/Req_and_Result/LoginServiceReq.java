@@ -1,10 +1,17 @@
 package Req_and_Result;
 
+/**
+ * Request Class to support the Login Service class.
+ */
 public class LoginServiceReq {
+
+    /**
+     * Class constructor
+     */
+    public LoginServiceReq() {}
 
     private String username;
     private String password;
-    public LoginServiceReq() {}
 
     public void setUsername(String username) {}
 

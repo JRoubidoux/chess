@@ -4,48 +4,40 @@ import chess.ChessPosition;
 
 import java.util.Objects;
 
+/**
+ * This class represents a given position on the chessboard during a chess game.
+ */
 public class ChessPositionImp implements ChessPosition {
-    /**
-     * Variables for this class and constructor for the class as well
-     * **/
 
     private int row = 0;
     private int column = 0;
 
     /**
+     * Class constructor
      *
-     * @param inputRow
-     * @param inputColumn
+     * @param inputRow An integer representing the row on the board
+     * @param inputColumn An integer representing the column on the board
      */
     public ChessPositionImp(int inputRow, int inputColumn) {
         row = inputRow;
         column = inputColumn;
     }
 
-
-    /**
-     * @return which row this position is in
-     * 1 codes for the bottom row
-     */
-
     @Override
     public int getRow() {
         return row;
     }
 
-    /**
-     * @return which column this position is in
-     * 1 codes for the left row
-     */
     @Override
     public int getColumn() {
         return column;
     }
 
     /**
+     * Equals method for ChessPositionImp
      *
-     * @param o
-     * @return
+     * @param o Should be a ChessPositionImp
+     * @return Boolean value. True is the objects are the same.
      */
     @Override
     public boolean equals(Object o) {
@@ -56,8 +48,9 @@ public class ChessPositionImp implements ChessPosition {
     }
 
     /**
+     * Function that returns a hashcode for a ChessPositionImp object
      *
-     * @return
+     * @return An integer
      */
     @Override
     public int hashCode() {

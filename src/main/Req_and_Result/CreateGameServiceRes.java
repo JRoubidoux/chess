@@ -1,9 +1,13 @@
 package Req_and_Result;
 
-import java.util.HashMap;
-
+/**
+ * Response Class to support the CreateGame Service class.
+ */
 public class CreateGameServiceRes {
 
+    /**
+     * Class constructor
+     */
     public CreateGameServiceRes() {
     }
 

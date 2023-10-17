@@ -1,19 +1,18 @@
 package chess;
 
+/**
+ * This class represents the chessboard in our chess game. It has a 8x8 array of chessPieces.
+ */
 public class ChessBoardImp implements ChessBoard {
-    /**
-     * Adds a chess piece to the chessboard
-     *
-     * @param position where to add the piece to
-     * @param piece    the piece to add
-     */
+
 
     private ChessPiece[][] chessBoard = new ChessPiece[8][8];
 
     /**
+     * Adds a chess piece to the chessboard
      *
-     * @param position where to add the piece to
-     * @param piece    the piece to add
+     * @param position A ChessPosition object that represents where to add the piece on board
+     * @param piece A ChessPiece object.
      */
     @Override
     public void addPiece(ChessPosition position, ChessPiece piece) {
@@ -23,8 +22,9 @@ public class ChessBoardImp implements ChessBoard {
     }
 
     /**
+     * Removes a chessPiece from the board.
      *
-     * @param position
+     * @param position position of current piece to be removed.
      */
     public void removePiece(ChessPosition position) {
         var row = position.getRow();
@@ -35,7 +35,7 @@ public class ChessBoardImp implements ChessBoard {
     /**
      * Gets a chess piece on the chessboard
      *
-     * @param position The position to get the piece from
+     * @param position position of something on board we want returned. May be null
      * @return Either the piece at the position, or null if no piece is at that
      * position
      */

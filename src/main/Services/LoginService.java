@@ -3,6 +3,9 @@ package Services;
 import Req_and_Result.LoginServiceReq;
 import Req_and_Result.LoginServiceRes;
 
+/**
+ * Class that handles logins on the server
+ */
 public class LoginService {
 
     /**

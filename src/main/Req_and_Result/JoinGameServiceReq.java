@@ -1,11 +1,13 @@
 package Req_and_Result;
 
-import chess.ChessGame;
-
-import java.util.HashMap;
-
+/**
+ * Request Class to support the JoinGame Service class.
+ */
 public class JoinGameServiceReq {
 
+    /**
+     * Class constructor
+     */
     public JoinGameServiceReq() {
     }
 

@@ -1,5 +1,8 @@
 package DAOs;
 
+/**
+ * Class that represents the Data Access Object that deals with authTokens.
+ */
 public class AuthDAO {
 
     /**
@@ -14,8 +17,9 @@ public class AuthDAO {
      * Given a username, retrieve an authToken
      *
      * @param username A string that represents a username.
+     * @return A string that represents the authToken
      */
-    public void retrieveAuthToken(String username) {}
+    public String retrieveAuthToken(String username) {return null;}
 
     /**
      * Given a username, delete the authToken that corresponds to it.

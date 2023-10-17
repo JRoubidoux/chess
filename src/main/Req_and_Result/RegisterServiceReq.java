@@ -1,9 +1,13 @@
 package Req_and_Result;
 
-import Services.RegisterService;
-
+/**
+ * Request Class to support the Register Service class.
+ */
 public class RegisterServiceReq {
 
+    /**
+     * Class constructor
+     */
     public RegisterServiceReq() {}
 
     private String username;

@@ -1,10 +1,14 @@
 package Req_and_Result;
 
-import java.util.ArrayList;
-import java.util.HashMap;
 
+/**
+ * Request Class to support the ListGames Service class
+ */
 public class ListGamesServiceReq {
 
+    /**
+     * Class constructor
+     */
     public ListGamesServiceReq() {
     }
 

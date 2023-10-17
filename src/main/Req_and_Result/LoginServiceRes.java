@@ -1,12 +1,18 @@
 package Req_and_Result;
 
+/**
+ * Response Class to support the Login Service class.
+ */
 public class LoginServiceRes {
+
+    /**
+     * Class constructor
+     */
+    public LoginServiceRes() {}
 
     private String message;
     private String authToken;
     private String username;
-
-    public LoginServiceRes() {}
 
     public void setMessage(String message) {}
 

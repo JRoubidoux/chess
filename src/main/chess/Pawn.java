@@ -3,11 +3,15 @@ package chess;
 import java.util.ArrayList;
 import java.util.Collection;
 
+/**
+ * This class represents the Pawn piece in the chessgame.
+ */
 public class Pawn extends ChessPieceImp{
 
     /**
+     * Class constructor
      *
-     * @param color
+     * @param color TeamColor object. Pawn's color.
      */
     public Pawn(ChessGame.TeamColor color) {
         super(color, PieceType.PAWN);
@@ -19,9 +23,9 @@ public class Pawn extends ChessPieceImp{
      * Does not take into account moves that are illegal due to leaving the king in
      * danger
      *
-     * @param board
-     * @param myPosition
-     * @return Collection of valid moves
+     * @param board ChessBoard object. Current game board.
+     * @param myPosition ChessPosition object. Pawn's position.
+     * @return Collection of ChessMove objects. List of moves pawn could make.
      */
     @Override
     public Collection<ChessMove> pieceMoves(ChessBoard board, ChessPosition myPosition) {
@@ -39,10 +43,11 @@ public class Pawn extends ChessPieceImp{
     }
 
     /**
+     * Helper function to return moves if pawn is white.
      *
-     * @param validPawnMoves
-     * @param board
-     * @param myPosition
+     * @param validPawnMoves List of ChessMove objects. List of valid moves the pawn can make.
+     * @param board ChessBoard object. Current version of chessboard.
+     * @param myPosition ChessPosition object. Position of current pawn
      */
     public void pawnIsWhite(Collection<ChessMove> validPawnMoves, ChessBoard board, ChessPosition myPosition) {
 
@@ -61,10 +66,11 @@ public class Pawn extends ChessPieceImp{
     }
 
     /**
+     *  Helper function to return moves if pawn is white.
      *
-     * @param validPawnMoves
-     * @param board
-     * @param myPosition
+     * @param validPawnMoves List of ChessMove objects. List of valid moves the pawn can make.
+     * @param board ChessBoard object. Current version of chessboard.
+     * @param myPosition ChessPosition object. Position of current pawn
      */
     public void pawnIsBlack(Collection<ChessMove> validPawnMoves, ChessBoard board, ChessPosition myPosition) {
 
@@ -83,13 +89,14 @@ public class Pawn extends ChessPieceImp{
     }
 
     /**
+     * Helper function to get list of moves pawn can make.
      *
-     * @param validPawnMoves
-     * @param board
-     * @param myPosition
-     * @param pawnRowNumber
-     * @param rowOffset
-     * @param endRow
+     * @param validPawnMoves List of ChessMove objects. Valid moves pawn can make.
+     * @param board ChessBoard object. Current game board.
+     * @param myPosition ChessPosition object. Pawn's current position.
+     * @param pawnRowNumber An integer than represents what row the pawn is on.
+     * @param rowOffset An integer that represents whether a pawn will move up or down.
+     * @param endRow An integer that shows the farthest a pawn can travel.
      */
     public void pawnCanMoveOneUpOrDown(Collection<ChessMove> validPawnMoves, ChessBoard board, ChessPosition myPosition, int pawnRowNumber, int rowOffset, int endRow) {
         // This function checks if a pawn can move one forward.
@@ -110,13 +117,14 @@ public class Pawn extends ChessPieceImp{
     }
 
     /**
+     * Helper function to get list of moves pawn can make.
      *
-     * @param validPawnMoves
-     * @param board
-     * @param myPosition
-     * @param pawnRowNumber
-     * @param rowOffset
-     * @param pawnStartRow
+     * @param validPawnMoves List of ChessMove objects. Valid moves pawn can make.
+     * @param board ChessBoard object. Current game board.
+     * @param myPosition ChessPosition object. Pawn's current position.
+     * @param pawnRowNumber An integer than represents what row the pawn is on.
+     * @param rowOffset An integer that represents whether a pawn will move up or down.
+     * @param pawnStartRow An integer that shows whether the pawn is at its starting row.
      */
     public void pawnCanMoveTwoUpOrDown(Collection<ChessMove> validPawnMoves, ChessBoard board, ChessPosition myPosition, int pawnRowNumber, int rowOffset, int pawnStartRow) {
         // This function checks if a pawn can move forward two.
@@ -135,13 +143,14 @@ public class Pawn extends ChessPieceImp{
     }
 
     /**
+     * Helper function to get list of moves pawn can make.
      *
-     * @param validPawnMoves
-     * @param board
-     * @param myPosition
-     * @param pawnRowNumber
-     * @param pawnColumnNumber
-     * @param rowOffset
+     * @param validPawnMoves List of ChessMove objects. Valid moves pawn can make.
+     * @param board ChessBoard object. Current game board.
+     * @param myPosition ChessPosition object. Pawn's current position.
+     * @param pawnRowNumber An integer than represents what row the pawn is on.
+     * @param pawnColumnNumber An integer that represents the column the pawn is currently in.
+     * @param rowOffset An integer that represents whether a pawn moves up or down the board.
      */
     public void checkPawnAttackMoves(Collection<ChessMove> validPawnMoves, ChessBoard board, ChessPosition myPosition, int pawnRowNumber, int pawnColumnNumber, int rowOffset) {
 
@@ -175,12 +184,13 @@ public class Pawn extends ChessPieceImp{
     }
 
     /**
+     * Helper function to get list of moves pawn can make.
      *
-     * @param validPawnMoves
-     * @param board
-     * @param myPosition
-     * @param newRowNum
-     * @param upperDiagPos
+     * @param validPawnMoves List of ChessMove objects. Valid moves pawn can make.
+     * @param board ChessBoard object. Current game board.
+     * @param myPosition ChessPosition object. Pawn's current position.
+     * @param newRowNum An integer that represents the new row a pawn will move to.
+     * @param upperDiagPos An integer that represents a position diagonal to a pawn.
      */
     private void checkPawnAttackMove(Collection<ChessMove> validPawnMoves, ChessBoard board, ChessPosition myPosition, int newRowNum, ChessPositionImp upperDiagPos) {
         if (board.getPiece(upperDiagPos) != null) {
@@ -197,6 +207,4 @@ public class Pawn extends ChessPieceImp{
             }
         }
     }
-
-
 }

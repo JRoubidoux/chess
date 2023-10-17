@@ -1,10 +1,13 @@
 package Req_and_Result;
 
 /**
- *
+ * Response Class to support the Register Service class.
  */
 public class RegisterServiceRes {
 
+    /**
+     * Class constructor
+     */
     public RegisterServiceRes() {}
 
     private String username;

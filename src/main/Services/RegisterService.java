@@ -3,6 +3,9 @@ package Services;
 import Req_and_Result.RegisterServiceReq;
 import Req_and_Result.RegisterServiceRes;
 
+/**
+ * Class that registers a new user in the DB
+ */
 public class RegisterService {
 
     /**
