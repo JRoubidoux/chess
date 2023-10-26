@@ -1,9 +1,12 @@
 package Req_and_Result;
 
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * Response Class to support the Register Service class.
  */
-public class RegisterServiceRes {
+public class RegisterServiceRes extends genRes{
 
     /**
      * Class constructor
@@ -12,7 +15,7 @@ public class RegisterServiceRes {
 
     private String username;
     private String authToken;
-    private String message;
+
 
     public String getUsername() {
         return username;
@@ -30,11 +33,6 @@ public class RegisterServiceRes {
         this.authToken = authToken;
     }
 
-    public String getMessage() {
-        return message;
-    }
 
-    public void setMessage(String message) {
-        this.message = message;
-    }
+
 }

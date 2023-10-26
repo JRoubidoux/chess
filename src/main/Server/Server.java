@@ -1,5 +1,6 @@
 package Server;
 import Handlers.clearAppHand;
+import Handlers.registerUserHand;
 import com.google.gson.Gson;
 import dataAccess.DataAccessException;
 import spark.Request;
@@ -51,10 +52,12 @@ public class Server {
     }
 
     private Object registerUser(Request req, Response res) {
-        return null;
+        var handle = new registerUserHand();
+        return handle.handleReg(req, res);
     }
 
     private Object loginUser(Request req, Response res) {
+        // create and return a handler.
         return null;
     }
 

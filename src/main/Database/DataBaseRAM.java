@@ -40,7 +40,8 @@ public class DataBaseRAM implements Database{
 
     @Override
     public Game readGame(Integer gameID) {
-        if (games == null) {return null;}
+        if (noGamesInDB()) {return null;}
+        if (games.get(gameID) == null) {return null;}
         var gameFromDict = games.get(gameID);
         var game = new Game();
         game.setGameID(gameID);
@@ -53,13 +54,15 @@ public class DataBaseRAM implements Database{
 
     @Override
     public User readUser(String username) {
-        if (users == null) {return null;}
+        if (noUsersInDB()) {return null;}
+        else if (users.get(username) == null) {return null;}
         return new User(username, users.get(username).get("password"), users.get(username).get("email"));
     }
 
     @Override
     public AuthToken readAuth(String authToken) {
-        if (authTokens == null) {return null;}
+        if (noAuthInDB()) {return null;}
+        if (authTokens.get(authToken) == null) {return null;}
         return new AuthToken(authToken, authTokens.get(authToken));
     }
 

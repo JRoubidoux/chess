@@ -1,15 +1,11 @@
 package Handlers;
+import Req_and_Result.genRes;
 import Services.ClearAppService;
-import com.google.gson.Gson;
-import dataAccess.DataAccessException;
 import spark.Request;
 import spark.Response;
 import Req_and_Result.ClearAppServiceReq;
-import Req_and_Result.ClearAppServiceRes;
 
-import java.util.Map;
-
-public class clearAppHand {
+public class clearAppHand extends generalHand {
 
     public Object handleClear(Request req, Response res) {
         // var body = turnToJava(req, Map.class);
@@ -21,21 +17,10 @@ public class clearAppHand {
 
     }
 
-    private static <T> T turnToJava(Request request, Class<T> clazz) {
-        var body = new Gson().fromJson(request.body(), clazz);
-        if (body == null) {
-            throw new RuntimeException("missing required body");
-        }
-        return body;
-    }
-
-    private static Object turnToJson(Response res, Object o) {
+    private Object turnToJson(Response res, genRes serviceRes) {
         res.type("application/json");
-        if (((ClearAppServiceRes) o).getMessage() != null) {
-            res.status(500);
-            var body = new Gson().toJson(Map.of("message", ((ClearAppServiceRes) o).getMessage()));
-            res.body(body);
-            return body;
+        if (serviceRes.getMessage() != null) {
+            return this.getResponse(res, 500, serviceRes);
         }
         else {
             res.status(200);

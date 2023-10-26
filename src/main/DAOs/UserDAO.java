@@ -21,13 +21,16 @@ public class UserDAO {
      * @param email A string that represents a user's email.
      * @throws DataAccessException If an error occurs trying to insert a new user.
      */
-    public void insertNewUser(String username, String password, String email) throws DataAccessException {
+    public void insertNewUser(User user) throws DataAccessException {
+        String username = user.getUsername();
+        String password = user.getPassword();
+        String email = user.getEmail();
         if (userPassEmailNull(username, password, email) || userPassEmailEmpty(username, password, email)) {
-            throw new DataAccessException("Must provide a username, password and email.");
+            throw new DataAccessException("bad request");
         }
 
         if (userInDB(username)) {
-            throw new DataAccessException("This user already exists in the db.");
+            throw new DataAccessException("already taken");
         }
 
         db.writeUser(new User(username, password, email));

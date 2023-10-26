@@ -20,7 +20,9 @@ public class AuthDAO {
      * @param authToken A string that represents an authToken
      * @throws DataAccessException If an error occurs trying to insert an authToken
      */
-    public void insertAuthToken(String username, String authToken) throws DataAccessException {
+    public void insertAuthToken(AuthToken authTokenOb) throws DataAccessException {
+        String username = authTokenOb.getUsername();
+        String authToken = authTokenOb.getAuthToken();
         if (authUserNull(authToken, username) || authUserEmpty(authToken, username)) {
             throw new DataAccessException("authToken and username must not by null or empty.");
         }
