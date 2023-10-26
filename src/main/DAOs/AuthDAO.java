@@ -1,5 +1,6 @@
 package DAOs;
 
+import Database.*;
 import Models.AuthToken;
 import dataAccess.DataAccessException;
 
@@ -10,7 +11,7 @@ import java.util.HashMap;
  */
 public class AuthDAO {
 
-    private static HashMap<String, String> authTokens;
+    private static Database db = new DataBaseRAM();
 
     /**
      * Given a username and an authToken, insert them into the DB.
@@ -26,7 +27,8 @@ public class AuthDAO {
         if (authInDB(authToken)) {
             throw new DataAccessException("Cannot have duplicate authTokens.");
         }
-        authTokens.put(authToken, username);
+
+        db.writeAuth(new AuthToken(authToken, username));
     }
 
     /**
@@ -40,10 +42,7 @@ public class AuthDAO {
         if (authNull(authToken) || authEmpty(authToken)) {
             throw new DataAccessException("authToken can't be empty or null.");
         }
-        var authTokenOb = new AuthToken();
-        authTokenOb.setAuthToken(authToken);
-        authTokenOb.setUsername(authTokens.get(authToken));
-        return authTokenOb;
+        return db.readAuth(authToken);
     }
 
     /**
@@ -56,15 +55,16 @@ public class AuthDAO {
         if (authNull(authToken) || authEmpty(authToken)) {
             throw new DataAccessException("authToken can't be null or empty.");
         }
-        authTokens.remove(authToken);
+        db.removeAuth(authToken);
     }
 
-    public void deleteAllAuth() throws DataAccessException {
-        if (authTokens != null) { authTokens.clear(); }
+    public void clearAuth() {
+        db.clearAuth();
     }
+
 
     public boolean authInDB(String authToken) {
-        return authTokens.get(authToken) != null;
+        return db.readAuth(authToken) != null;
     }
 
     public boolean authNull(String authToken) {

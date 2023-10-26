@@ -1,6 +1,7 @@
 package DAOs;
 
 import Database.DataBaseRAM;
+import Database.Database;
 import Models.Game;
 import chess.ChessGame;
 import chess.ChessGameImp;
@@ -15,7 +16,7 @@ import java.util.HashMap;
 public class GameDAO {
 
 
-    private static HashMap<Integer, HashMap<String, Object>> games;
+    private static Database db = new DataBaseRAM();
 
 
     /**
@@ -25,13 +26,8 @@ public class GameDAO {
      * @throws DataAccessException If an error occurs trying to insert a game.
      */
     public void insertNewGame(Game game) throws DataAccessException {
-        if (games.get(game.getGameID()) != null) {
-            var dictionary = new HashMap<String, Object>();
-            games.put(game.getGameID(), dictionary);
-            games.get(game.getGameID()).put("whiteUsername", game.getWhiteUsername());
-            games.get(game.getGameID()).put("blackUsername", game.getBlackUsername());
-            games.get(game.getGameID()).put("gameName", game.getGameName());
-            games.get(game.getGameID()).put("game", game.getGame());
+        if (!gameInDB(game.getGameID())) {
+            db.writeGame(game);
         }
         else {
             throw new DataAccessException("A game with this ID already exists.");
@@ -46,18 +42,11 @@ public class GameDAO {
      * @throws DataAccessException If an error occurs trying to find a game.
      */
     public Game findGame(int gameID) throws DataAccessException {
-        if (games.get(gameID) == null) {
+        if (db.readGame(gameID) == null) {
             throw new DataAccessException("No game exists with this ID.");
         }
         else {
-            var gameFromDict = games.get(gameID);
-            var game = new Game();
-            game.setGameID(gameID);
-            game.setGame((ChessGameImp) gameFromDict.get("game"));
-            game.setGameName((String) gameFromDict.get("gameName"));
-            game.setBlackUsername((String) gameFromDict.get("blackUsername"));
-            game.setWhiteUsername((String) gameFromDict.get("whiteUsername"));
-            return game;
+            return db.readGame(gameID);
         }
     }
 
@@ -68,15 +57,13 @@ public class GameDAO {
      * @throws DataAccessException If an error occurs trying to find all games.
      */
     public ArrayList<Game> findAllGames() throws DataAccessException {
+        var games = db.readAllGames();
+
         if (games.isEmpty()) {
             throw new DataAccessException("There are no games in the DB.");
         }
         else {
-            var allGames = new ArrayList<Game>();
-            for (Integer gameID : games.keySet()) {
-                allGames.add(findGame(gameID));
-            }
-            return allGames;
+            return games;
         }
     }
 
@@ -87,27 +74,32 @@ public class GameDAO {
      * @throws DataAccessException If an error occurs trying to claim spot in a game.
      */
     public void ClaimSpotInGame(String username, Integer gameID, ChessGame.TeamColor color) throws DataAccessException {
-        var gameInfo = games.get(gameID);
+        var gameInfo = db.readGame(gameID);
         if (gameInfo == null) {
             throw new DataAccessException("Trying to join a game that doesn't exist");
         }
-        else if (gameInfo.get("whiteUsername") != null) {
-            if (color == ChessGame.TeamColor.WHITE) {
-                throw new DataAccessException("White is already taken.");
+        else if (color == ChessGame.TeamColor.WHITE) {
+            if (gameInfo.getWhiteUsername() == null) {
+                // make user white
+                gameInfo.setWhiteUsername(username);
+                db.updateGame(gameInfo);
             }
             else {
-                games.get(gameID).put("whiteUsername", username);
+                // throw DAE
+                throw new DataAccessException("White's taken.");
             }
         }
-        if (gameInfo.get("blackUsername") != null) {
-            if (color == ChessGame.TeamColor.BLACK) {
-                throw new DataAccessException("Black is already taken.");
+        else {
+            if (gameInfo.getBlackUsername() == null) {
+                // make user black
+                gameInfo.setBlackUsername(username);
+                db.updateGame(gameInfo);
             }
             else {
-                games.get(gameID).put("blackUsername", username);
+                // throw DAE
+                throw new DataAccessException("Black's taken.");
             }
         }
-
     }
 
     /**
@@ -117,7 +109,9 @@ public class GameDAO {
      * @param chessGame A Game object.
      * @throws DataAccessException If an error occurs trying to update a game.
      */
-    public void UpdateGame(Game chessGame) throws DataAccessException {}
+    public void UpdateGame(Game chessGame) throws DataAccessException {
+        db.updateGame(chessGame);
+    }
 
     /**
      * Removes a game from the DB.
@@ -126,11 +120,11 @@ public class GameDAO {
      * @throws DataAccessException If an error occurs trying to delete a game.
      */
     public void RemoveGame(Integer gameID) throws DataAccessException {
-        if (games.get(gameID) == null) {
+        if (!gameInDB(gameID)) {
             throw new DataAccessException("No game corresponds to this gameID");
         }
         else {
-            games.remove(gameID);
+            db.removeGame(gameID);
         }
     }
 
@@ -140,6 +134,17 @@ public class GameDAO {
      * @throws DataAccessException If an error occurs trying to delete all games.
      */
     public void ClearGames() throws DataAccessException {
-        if (games != null) { games.clear(); }
+        db.clearGames();
     }
+
+    public boolean gameInDB(Integer gameID) {
+        if (noGamesinDB()) {return false;}
+        else { return db.readGame(gameID) != null; }
+    }
+
+    public boolean noGamesinDB() {
+        return db.noGamesInDB();
+    }
+
+
 }

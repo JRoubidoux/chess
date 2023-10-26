@@ -1,21 +1,24 @@
 package Handlers;
-import Services.ClearAppService;
-import com.google.gson.Gson;
-import dataAccess.DataAccessException;
-import spark.Request;
-import spark.Response;
+
 import Req_and_Result.ClearAppServiceReq;
 import Req_and_Result.ClearAppServiceRes;
+import Services.ClearAppService;
+import com.google.gson.Gson;
+import spark.Request;
+import spark.Response;
 
 import java.util.Map;
 
-public class clearAppHand {
+public class registerUserHand {
 
-    public Object handleClear(Request req, Response res) {
-        // var body = turnToJava(req, Map.class);
-        var clearReq = new ClearAppServiceReq();
-        var clearService = new ClearAppService();
-        var clearRes = clearService.clearApp(clearReq);
+    public Object handleReg(Request req, Response res) {
+        var body = turnToJava(req, Map.class);
+//        var clearReq = new ClearAppServiceReq();
+//        var clearService = new ClearAppService();
+//        var clearRes = clearService.clearApp(clearReq);
+        // requestclass
+        // serviceclass
+        // responseclass
         return turnToJson(res, clearRes);
 
 

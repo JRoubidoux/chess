@@ -25,33 +25,40 @@ public class Server {
         Spark.externalStaticFileLocation("src/main/web");
 
         // Register handlers for each endpoint using the method reference syntax
-        Spark.post("/name/:name", this::addName);
-        Spark.get("/name", this::listNames);
-        Spark.delete("/name/:name", this::deleteName);
-
         // Needed Methods
         Spark.delete("/db", this::clearDB);
+        Spark.post("/user", this::registerUser);
+        Spark.post("/session", this::loginUser);
+        Spark.delete("/session", this::logoutUser);
+        Spark.get("/game", this::loginUser);
+        Spark.post("/game", this::createGame);
+        Spark.put("/game", this::joinGame);
 
     }
 
-    private Object clearDB(Request req, Response res) throws DataAccessException {
+    private Object joinGame(Request req, Response res) {
+        return null;
+    }
+
+    private Object createGame(Request req, Response res) {
+        return null;
+    }
+
+    private Object clearDB(Request req, Response res) {
         // Use a handler to manage the request.
         var handler = new clearAppHand();
         return handler.handleClear(req, res);
     }
 
-    private Object addName(Request req, Response res) {
-        names.add(req.params(":name"));
-        return listNames(req, res);
+    private Object registerUser(Request req, Response res) {
+        return null;
     }
 
-    private Object listNames(Request req, Response res) {
-        res.type("application/json");
-        return new Gson().toJson(Map.of("name", names));
+    private Object loginUser(Request req, Response res) {
+        return null;
     }
 
-    private Object deleteName(Request req, Response res) {
-        names.remove(req.params(":name"));
-        return listNames(req, res);
+    private Object logoutUser(Request req, Response res) {
+        return null;
     }
 }

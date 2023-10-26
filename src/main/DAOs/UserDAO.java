@@ -1,5 +1,6 @@
 package DAOs;
 
+import Database.*;
 import Models.User;
 import dataAccess.DataAccessException;
 
@@ -10,7 +11,7 @@ import java.util.HashMap;
  */
 public class UserDAO {
 
-    private static HashMap<String, HashMap<String, String>> users;
+    private static Database db = new DataBaseRAM();
 
     /**
      * Takes the following parameters and stores them in the DB as a User.
@@ -29,9 +30,7 @@ public class UserDAO {
             throw new DataAccessException("This user already exists in the db.");
         }
 
-        users.put(username, new HashMap<String, String>());
-        users.get(username).put("password", password);
-        users.get(username).put("email", email);
+        db.writeUser(new User(username, password, email));
     }
 
     /**
@@ -50,11 +49,7 @@ public class UserDAO {
             throw new DataAccessException("User doesn't exist in database.");
         }
 
-        var user = new User();
-        user.setUsername(username);
-        user.setPassword((users.get(username).get("password")));
-        user.setEmail(users.get(username).get("email"));
-        return user;
+        return db.readUser(username);
     }
 
     /**
@@ -75,8 +70,7 @@ public class UserDAO {
         }
 
         else {
-            users.get(username).put("password", password);
-            users.get(username).put("email", email);
+            db.updateUser(new User(username, password, email));
         }
 
     }
@@ -91,16 +85,17 @@ public class UserDAO {
         if (userNull(username) || userEmpty(username)) {
             throw new DataAccessException("username can't be null or empty.");
         }
-        users.remove(username);
+        db.removeUser(username);
     }
 
-    public void deleteAllUsers() throws DataAccessException {
-        if (users != null) { users.clear(); }
+    public void clearUsers() {
+        db.clearUsers();
     }
+
 
 
     public boolean userInDB(String username) {
-        return users.get(username) != null;
+        return db.readUser(username) != null;
     }
 
     public boolean userNull(String username) {

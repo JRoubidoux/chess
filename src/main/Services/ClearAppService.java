@@ -25,8 +25,8 @@ public class ClearAppService {
             var authDao = new AuthDAO();
 
             gameDao.ClearGames();
-            userDao.deleteAllUsers();
-            authDao.deleteAllAuth();
+            userDao.clearUsers();
+            authDao.clearAuth();
 
             return new ClearAppServiceRes();
         }

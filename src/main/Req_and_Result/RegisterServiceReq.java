@@ -1,5 +1,7 @@
 package Req_and_Result;
 
+import java.util.Map;
+
 /**
  * Request Class to support the Register Service class.
  */
@@ -8,7 +10,11 @@ public class RegisterServiceReq {
     /**
      * Class constructor
      */
-    public RegisterServiceReq() {}
+    public RegisterServiceReq(Map<String, String> body) {
+        setUsername(body.get("username"));
+        setEmail(body.get("email"));
+        setPassword(body.get("password"));
+    }
 
     private String username;
     private String password;
