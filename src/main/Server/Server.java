@@ -1,5 +1,7 @@
 package Server;
+import Handlers.clearAppHand;
 import com.google.gson.Gson;
+import dataAccess.DataAccessException;
 import spark.Request;
 import spark.Response;
 import spark.Spark;
@@ -26,6 +28,16 @@ public class Server {
         Spark.post("/name/:name", this::addName);
         Spark.get("/name", this::listNames);
         Spark.delete("/name/:name", this::deleteName);
+
+        // Needed Methods
+        Spark.delete("/db", this::clearDB);
+
+    }
+
+    private Object clearDB(Request req, Response res) throws DataAccessException {
+        // Use a handler to manage the request.
+        var handler = new clearAppHand();
+        return handler.handleClear(req, res);
     }
 
     private Object addName(Request req, Response res) {

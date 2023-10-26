@@ -140,6 +140,6 @@ public class GameDAO {
      * @throws DataAccessException If an error occurs trying to delete all games.
      */
     public void ClearGames() throws DataAccessException {
-        games.clear();
+        if (games != null) { games.clear(); }
     }
 }

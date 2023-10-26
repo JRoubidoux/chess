@@ -94,6 +94,9 @@ public class UserDAO {
         users.remove(username);
     }
 
+    public void deleteAllUsers() throws DataAccessException {
+        if (users != null) { users.clear(); }
+    }
 
 
     public boolean userInDB(String username) {
