@@ -21,6 +21,8 @@ public class DataBaseRAM implements Database{
     public void writeGame(Game game) {
         games.put(game.getGameID(), new HashMap<String, Object>());
         games.get(game.getGameID()).put("gameName", game.getGameName());
+        games.get(game.getGameID()).put("whiteUsername", null);
+        games.get(game.getGameID()).put("blackUsername", null);
         games.get(game.getGameID()).put("game", new ChessGameImp());
     }
 

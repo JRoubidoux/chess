@@ -1,5 +1,7 @@
 package Req_and_Result;
 
+import chess.ChessGame;
+
 /**
  * Request Class to support the JoinGame Service class.
  */
@@ -8,7 +10,12 @@ public class JoinGameServiceReq {
     /**
      * Class constructor
      */
-    public JoinGameServiceReq() {
+    public JoinGameServiceReq(String authToken, String color, int gameID) {
+        setAuthToken(authToken);
+        setColor(color);
+        setGameID(gameID);
+
+
     }
 
     private String authToken;

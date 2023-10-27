@@ -3,21 +3,11 @@ package Req_and_Result;
 /**
  * Response Class to support the JoinGame Service class.
  */
-public class JoinGameServiceRes {
+public class JoinGameServiceRes extends genRes {
 
     /**
      * Class Constructor
      */
-    public JoinGameServiceRes() {
-    }
+    public JoinGameServiceRes() {}
 
-    private String message;
-
-    public String getMessage() {
-        return message;
-    }
-
-    public void setMessage(String message) {
-        this.message = message;
-    }
 }

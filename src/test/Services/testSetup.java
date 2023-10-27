@@ -3,17 +3,16 @@ package Services;
 import DAOs.AuthDAO;
 import DAOs.GameDAO;
 import DAOs.UserDAO;
-import Req_and_Result.LoginServiceReq;
-import Req_and_Result.LogoutServiceReq;
-import Req_and_Result.RegisterServiceReq;
-import Req_and_Result.genRes;
+import Req_and_Result.*;
 import dataAccess.DataAccessException;
 
 import java.util.HashMap;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class testSetup {
+
 
     public genRes registerUser(String username, String password, String email) {
         var body = new HashMap<String, String>();
@@ -39,6 +38,12 @@ public class testSetup {
         var logoutReq = new LogoutServiceReq(authToken);
         var logoutServ = new LogoutService();
         return logoutServ.logout(logoutReq);
+    }
+
+    public genRes createAGame(String authToken, String gameID) {
+        var createGameReq = new CreateGameServiceReq(authToken, gameID);
+        var createGameServ = new CreateGameService();
+        return createGameServ.createGame(createGameReq);
     }
 
     public void cleardb() {

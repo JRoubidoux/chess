@@ -42,9 +42,8 @@ public class Server {
     }
 
     private Object joinGame(Request req, Response res) {
-        // create a handler
-        // return a handler
-        return null;
+        var handle = new JoinGameHand();
+        return handle.handleJoinGame(req, res);
     }
 
     private Object createGame(Request req, Response res) {

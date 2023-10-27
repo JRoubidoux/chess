@@ -1,5 +1,6 @@
 package Services;
 
+import DAOs.AuthDAO;
 import DAOs.GameDAO;
 import Models.Game;
 import Req_and_Result.ListGamesServiceReq;
@@ -22,8 +23,12 @@ public class ListGamesService {
      * @return A ListGamesServiceResponse object.
      */
     public ListGamesServiceRes listGames(ListGamesServiceReq request) {
-        var gameDao = new GameDAO();
         try {
+            var authDAO = new AuthDAO();
+            if (!authDAO.authInDB(request.getAuthToken())) {
+                throw new DataAccessException("unauthorized");
+            }
+            var gameDao = new GameDAO();
             var games = gameDao.findAllGames();
             // { "games": [{"gameID": 1234, "whiteUsername":"", "blackUsername":"", "gameName:""} ]}
             var gamesInfo = new ArrayList<HashMap<String, Object>>();
@@ -52,7 +57,6 @@ public class ListGamesService {
     }
 
     public void setUserName(HashMap<String, Object> dict, String username, String key) {
-        if (username == null) { dict.put(key, ""); }
-        else { dict.put(key, username);}
+        dict.put(key, username);
     }
 }
