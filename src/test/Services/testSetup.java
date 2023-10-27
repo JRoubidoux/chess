@@ -46,6 +46,18 @@ public class testSetup {
         return createGameServ.createGame(createGameReq);
     }
 
+    public genRes joinAGame(String auth, String color, int gameID) {
+        var joinGameReq = new JoinGameServiceReq(auth, color, gameID);
+        var joinGameServ = new JoinGameService();
+        return joinGameServ.joinGame(joinGameReq);
+    }
+
+    public genRes listGames(String auth) {
+        var listGameReq = new ListGamesServiceReq(auth);
+        var listGameServ = new ListGamesService();
+        return listGameServ.listGames(listGameReq);
+    }
+
     public void cleardb() {
         var auth = new AuthDAO();
         var user = new UserDAO();
@@ -54,6 +66,9 @@ public class testSetup {
             game.ClearGames();
             auth.clearAuth();
             user.clearUsers();
+
+            var reset = new CreateGameService();
+            reset.resetGameCounter();
         }
         catch (DataAccessException e) {
             System.out.println("server failure");

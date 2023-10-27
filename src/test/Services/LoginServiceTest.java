@@ -8,6 +8,7 @@ import Req_and_Result.LoginServiceReq;
 import Req_and_Result.RegisterServiceReq;
 import dataAccess.DataAccessException;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 
 import java.util.HashMap;
@@ -25,19 +26,24 @@ class LoginServiceTest extends testSetup {
 
     @Test
     void testLogin() {
-        var regRes = this.registerUser("jack", "secret", "gmail");
+        var regRes = this.registerUser("login_jack", "secret", "gmail");
         assertEquals(regRes.getMessage(), "success");
 
-        var loginRes = this.loginUser("jack", "secret");
+        var loginRes = this.loginUser("login_jack", "secret");
         assertEquals(loginRes.getMessage(), "success");
     }
 
     @Test
     void testLoginNoPass() {
-        var regRes = this.registerUser("jack", "secret", "gmail");
+        var regRes = this.registerUser("login_jack", "secret", "gmail");
         assertEquals(regRes.getMessage(), "success");
 
         var loginRes = this.loginUser("jack", "mula");
         assertEquals(loginRes.getMessage(), "unauthorized");
+    }
+
+    @Test
+    void clearDataAfter() {
+        this.cleardb();
     }
 }

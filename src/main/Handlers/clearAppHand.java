@@ -7,8 +7,10 @@ import Req_and_Result.ClearAppServiceReq;
 
 public class clearAppHand extends generalHand {
 
+    /*
+    creates request object for the service, returns a response object generated from service
+     */
     public Object handleClear(Request req, Response res) {
-        // var body = turnToJava(req, Map.class);
         var clearReq = new ClearAppServiceReq();
         var clearService = new ClearAppService();
         var clearRes = clearService.clearApp(clearReq);

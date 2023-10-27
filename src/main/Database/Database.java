@@ -5,7 +5,6 @@ import Models.Game;
 import Models.User;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 
 public interface Database {
 

@@ -35,9 +35,7 @@ public class Server {
     }
 
     private Object listGames(Request req, Response res) {
-        // create a handler
         var handle = new listGamesHand();
-        // return a handler.
         return handle.handleListGames(req, res);
     }
 

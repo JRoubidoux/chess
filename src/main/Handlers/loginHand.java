@@ -11,6 +11,10 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class loginHand extends generalHand {
+
+    /*
+    creates request object for the service, returns a response object generated from service
+     */
     public Object handleLogin(Request req, Response res) {
         var body = turnToJava(req, Map.class);
         var loginReq = new LoginServiceReq(body);

@@ -11,6 +11,9 @@ import java.util.Map;
 
 public class createGameHand extends generalHand {
 
+    /*
+    creates request object for the service, returns a response object generated from service
+     */
     public Object handleCreateGame(Request req, Response res) {
         String auth = req.headers("authorization");
         var body = turnToJava(req, Map.class);

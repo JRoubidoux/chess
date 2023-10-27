@@ -27,7 +27,6 @@ public class ClearAppService {
             gameDao.ClearGames();
             userDao.clearUsers();
             authDao.clearAuth();
-
             return new ClearAppServiceRes();
         }
         catch (DataAccessException e) {

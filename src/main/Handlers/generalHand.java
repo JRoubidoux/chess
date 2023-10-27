@@ -9,6 +9,10 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class generalHand {
+    /*
+    General class to support functionality of other handler classes.
+     */
+
     public static <T> T turnToJava(Request req, Class<T> clazz) {
 
         var body = new Gson().fromJson(req.body(), clazz);

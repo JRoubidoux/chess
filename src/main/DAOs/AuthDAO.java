@@ -4,7 +4,6 @@ import Database.*;
 import Models.AuthToken;
 import dataAccess.DataAccessException;
 
-import java.util.HashMap;
 
 /**
  * Class that represents the Data Access Object that deals with authTokens.
@@ -16,8 +15,7 @@ public class AuthDAO {
     /**
      * Given a username and an authToken, insert them into the DB.
      *
-     * @param username A string that represents a user.
-     * @param authToken A string that represents an authToken
+     * @param authTokenOb an instance of an authToken model.
      * @throws DataAccessException If an error occurs trying to insert an authToken
      */
     public void insertAuthToken(AuthToken authTokenOb) throws DataAccessException {

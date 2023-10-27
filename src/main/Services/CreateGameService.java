@@ -14,6 +14,10 @@ import dataAccess.DataAccessException;
 public class CreateGameService {
 
     private static int gameIDCounter = 1;
+
+    public void resetGameCounter() {
+        gameIDCounter = 1;
+    }
     /**
      * Creates a new game.
      *

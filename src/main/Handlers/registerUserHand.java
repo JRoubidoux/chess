@@ -10,6 +10,9 @@ import java.util.Map;
 
 public class registerUserHand extends generalHand {
 
+    /*
+    creates request object for the service, returns a response object generated from service
+     */
     public Object handleReg(Request req, Response res) {
         var body = turnToJava(req, Map.class);
         var regReq = new RegisterServiceReq(body);

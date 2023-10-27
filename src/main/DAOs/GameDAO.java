@@ -4,11 +4,9 @@ import Database.DataBaseRAM;
 import Database.Database;
 import Models.Game;
 import chess.ChessGame;
-import chess.ChessGameImp;
 import dataAccess.DataAccessException;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 
 /**
  * Class that represents the Data Access Object that deals with games.

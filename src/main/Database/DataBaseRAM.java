@@ -4,8 +4,6 @@ import Models.AuthToken;
 import Models.Game;
 import Models.User;
 import chess.ChessGameImp;
-import dataAccess.DataAccessException;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -17,6 +15,9 @@ public class DataBaseRAM implements Database{
 
 
 
+    /*
+    This method writes new games into the db.
+     */
     @Override
     public void writeGame(Game game) {
         games.put(game.getGameID(), new HashMap<String, Object>());
@@ -26,12 +27,18 @@ public class DataBaseRAM implements Database{
         games.get(game.getGameID()).put("game", new ChessGameImp());
     }
 
+    /*
+    writes authtokens into db.
+     */
     @Override
     public void writeAuth(AuthToken authToken) {
         authTokens.put(authToken.getAuthToken(), authToken.getUsername());
 
     }
 
+    /*
+    writes users into db
+     */
     @Override
     public void writeUser(User user) {
         users.put(user.getUsername(), new HashMap<String, String>());
@@ -39,6 +46,9 @@ public class DataBaseRAM implements Database{
         users.get(user.getUsername()).put("email", user.getEmail());
     }
 
+    /*
+    reads game from db
+     */
     @Override
     public Game readGame(Integer gameID) {
         if (noGamesInDB()) {return null;}
@@ -53,6 +63,9 @@ public class DataBaseRAM implements Database{
         return game;
     }
 
+    /*
+    reads user from db
+     */
     @Override
     public User readUser(String username) {
         if (noUsersInDB()) {return null;}
@@ -60,6 +73,9 @@ public class DataBaseRAM implements Database{
         return new User(username, users.get(username).get("password"), users.get(username).get("email"));
     }
 
+    /*
+    reads authTokens from db.
+     */
     @Override
     public AuthToken readAuth(String authToken) {
         if (noAuthInDB()) {return null;}
@@ -83,6 +99,9 @@ public class DataBaseRAM implements Database{
 
     }
 
+    /*
+    update information for a game
+     */
     @Override
     public void updateGame(Game game) {
         games.get(game.getGameID()).put("whiteUsername", game.getWhiteUsername());
@@ -91,13 +110,18 @@ public class DataBaseRAM implements Database{
         games.get(game.getGameID()).put("game", game.getGame());
     }
 
-
+    /*
+    updates users in db
+     */
     @Override
     public void updateUser(User user) {
         users.get(user.getUsername()).put("password", user.getPassword());
         users.get(user.getUsername()).put("email", user.getEmail());
     }
 
+    /*
+    reads all games from db
+     */
     @Override
     public ArrayList<Game> readAllGames() {
         var allGames = new ArrayList<Game>();
