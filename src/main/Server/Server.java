@@ -1,8 +1,5 @@
 package Server;
-import Handlers.clearAppHand;
-import Handlers.loginHand;
-import Handlers.logoutHand;
-import Handlers.registerUserHand;
+import Handlers.*;
 import com.google.gson.Gson;
 import dataAccess.DataAccessException;
 import spark.Request;
@@ -14,7 +11,6 @@ import java.util.Map;
 
 public class Server {
 
-    private ArrayList<String> names = new ArrayList<>();
 
     public static void main(String[] args) {
         new Server().run();
@@ -28,27 +24,35 @@ public class Server {
         Spark.externalStaticFileLocation("src/main/web");
 
         // Register handlers for each endpoint using the method reference syntax
-        // Needed Methods
         Spark.delete("/db", this::clearDB);
         Spark.post("/user", this::registerUser);
         Spark.post("/session", this::loginUser);
         Spark.delete("/session", this::logoutUser);
-        Spark.get("/game", this::loginUser);
+        Spark.get("/game", this::listGames);
         Spark.post("/game", this::createGame);
         Spark.put("/game", this::joinGame);
 
     }
 
+    private Object listGames(Request req, Response res) {
+        // create a handler
+        var handle = new listGamesHand();
+        // return a handler.
+        return handle.handleListGames(req, res);
+    }
+
     private Object joinGame(Request req, Response res) {
+        // create a handler
+        // return a handler
         return null;
     }
 
     private Object createGame(Request req, Response res) {
-        return null;
+        var handle = new createGameHand();
+        return handle.handleCreateGame(req, res);
     }
 
     private Object clearDB(Request req, Response res) {
-        // Use a handler to manage the request.
         var handler = new clearAppHand();
         return handler.handleClear(req, res);
     }
@@ -64,9 +68,7 @@ public class Server {
     }
 
     private Object logoutUser(Request req, Response res) {
-        // Create logout handler
         var handle = new logoutHand();
-        // return logout handler
         return handle.handleLogout(req, res);
     }
 }

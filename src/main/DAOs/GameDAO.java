@@ -57,14 +57,7 @@ public class GameDAO {
      * @throws DataAccessException If an error occurs trying to find all games.
      */
     public ArrayList<Game> findAllGames() throws DataAccessException {
-        var games = db.readAllGames();
-
-        if (games.isEmpty()) {
-            throw new DataAccessException("There are no games in the DB.");
-        }
-        else {
-            return games;
-        }
+        return db.readAllGames();
     }
 
     /**

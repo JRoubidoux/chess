@@ -3,7 +3,7 @@ package Req_and_Result;
 /**
  * Response Class to support the CreateGame Service class.
  */
-public class CreateGameServiceRes {
+public class CreateGameServiceRes extends genRes {
 
     /**
      * Class constructor
@@ -11,16 +11,8 @@ public class CreateGameServiceRes {
     public CreateGameServiceRes() {
     }
 
-    private String message;
     private int gameID;
 
-    public String getMessage() {
-        return message;
-    }
-
-    public void setMessage(String message) {
-        this.message = message;
-    }
 
     public int getGameID() {
         return gameID;

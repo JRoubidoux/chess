@@ -3,19 +3,14 @@ package Services;
 import DAOs.AuthDAO;
 import DAOs.GameDAO;
 import DAOs.UserDAO;
-import Database.DataBaseRAM;
-import Req_and_Result.LoginServiceReq;
-import Req_and_Result.RegisterServiceReq;
+import Req_and_Result.LoginServiceRes;
 import dataAccess.DataAccessException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import static org.junit.jupiter.api.Assertions.*;
 
-class LoginServiceTest extends testSetup {
+class LogoutServiceTest extends testSetup {
 
     @BeforeEach
     void clearData() {
@@ -24,20 +19,28 @@ class LoginServiceTest extends testSetup {
 
 
     @Test
-    void testLogin() {
+    void testLogout() {
         var regRes = this.registerUser("jack", "secret", "gmail");
         assertEquals(regRes.getMessage(), "success");
 
         var loginRes = this.loginUser("jack", "secret");
         assertEquals(loginRes.getMessage(), "success");
+
+        var logoutRes = this.logoutUser(((LoginServiceRes) loginRes).getAuthToken());
+        assertEquals(logoutRes.getMessage(), "success");
     }
 
     @Test
-    void testLoginNoPass() {
+    void testLogoutNoAuth() {
         var regRes = this.registerUser("jack", "secret", "gmail");
         assertEquals(regRes.getMessage(), "success");
 
-        var loginRes = this.loginUser("jack", "mula");
-        assertEquals(loginRes.getMessage(), "unauthorized");
+        var loginRes = this.loginUser("jack", "secret");
+        assertEquals(loginRes.getMessage(), "success");
+
+        var logoutRes = this.logoutUser("random string");
+        assertEquals(logoutRes.getMessage(), "unauthorized");
     }
+
+
 }

@@ -5,34 +5,17 @@ import org.junit.jupiter.api.Test;
 import java.util.*;
 import static org.junit.jupiter.api.Assertions.*;
 
-class RegisterServiceTest {
+class RegisterServiceTest extends testSetup{
 
     @Test
     void registerUser() {
-
-        var body = new HashMap<String, String>();
-        body.put("username", "jack");
-        body.put("password", "secret");
-        body.put("email", "gmail");
-
-        var regReq = new RegisterServiceReq(body);
-        var regServ = new RegisterService();
-        var regRes = regServ.register(regReq);
-
+        var regRes = this.registerUser("jack", "secret", "gmail");
         assertEquals(regRes.getMessage(), "success");
     }
 
     @Test
     void tryToRegisterUser() {
-        var body = new HashMap<String, String>();
-        body.put("username", "jack");
-        body.put("password","secret");
-        body.put("email", "gmail");
-
-        var regReq = new RegisterServiceReq(body);
-        var regServ = new RegisterService();
-        var regRes = regServ.register(regReq);
-
+        var regRes = this.registerUser("jack", "secret", "gmail");
         assertEquals(regRes.getMessage(), "already taken");
 
     }

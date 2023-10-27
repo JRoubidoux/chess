@@ -6,7 +6,7 @@ import java.util.HashMap;
 /**
  * Response Class to support the ListGames Service class
  */
-public class ListGamesServiceRes {
+public class ListGamesServiceRes extends genRes {
 
     /**
      * Class Constructor
@@ -15,7 +15,6 @@ public class ListGamesServiceRes {
     }
 
     private ArrayList<HashMap<String, Object>> games;
-    private String message;
 
     public ArrayList<HashMap<String, Object>> getGames() {
         return games;
@@ -25,11 +24,4 @@ public class ListGamesServiceRes {
         this.games = games;
     }
 
-    public String getMessage() {
-        return message;
-    }
-
-    public void setMessage(String message) {
-        this.message = message;
-    }
 }

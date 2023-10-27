@@ -8,7 +8,9 @@ public class CreateGameServiceReq {
     /**
      * Class constructor
      */
-    public CreateGameServiceReq() {
+    public CreateGameServiceReq(String authToken, String gameName) {
+        setAuthToken(authToken);
+        setGameName(gameName);
     }
 
     private String authToken;

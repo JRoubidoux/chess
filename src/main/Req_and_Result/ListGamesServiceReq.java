@@ -9,7 +9,8 @@ public class ListGamesServiceReq {
     /**
      * Class constructor
      */
-    public ListGamesServiceReq() {
+    public ListGamesServiceReq(String authToken) {
+        setAuthToken(authToken);
     }
 
     private String authToken;

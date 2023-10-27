@@ -15,14 +15,13 @@ public class DataBaseRAM implements Database{
     private static HashMap<String, String> authTokens = new HashMap<>();
     private static HashMap<String, HashMap<String, String>> users = new HashMap<>();
 
+
+
     @Override
     public void writeGame(Game game) {
         games.put(game.getGameID(), new HashMap<String, Object>());
-        games.get(game.getGameID()).put("whiteUsername", game.getWhiteUsername());
-        games.get(game.getGameID()).put("blackUsername", game.getBlackUsername());
         games.get(game.getGameID()).put("gameName", game.getGameName());
-        games.get(game.getGameID()).put("game", game.getGame());
-
+        games.get(game.getGameID()).put("game", new ChessGameImp());
     }
 
     @Override
