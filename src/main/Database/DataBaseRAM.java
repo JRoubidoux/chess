@@ -11,9 +11,9 @@ import java.util.HashMap;
 
 public class DataBaseRAM implements Database{
 
-    private HashMap<Integer, HashMap<String, Object>> games = new HashMap<>();
-    private HashMap<String, String> authTokens = new HashMap<>();
-    private HashMap<String, HashMap<String, String>> users = new HashMap<>();
+    private static HashMap<Integer, HashMap<String, Object>> games = new HashMap<>();
+    private static HashMap<String, String> authTokens = new HashMap<>();
+    private static HashMap<String, HashMap<String, String>> users = new HashMap<>();
 
     @Override
     public void writeGame(Game game) {

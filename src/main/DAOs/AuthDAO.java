@@ -11,7 +11,7 @@ import java.util.HashMap;
  */
 public class AuthDAO {
 
-    private static Database db = new DataBaseRAM();
+    private Database db = new DataBaseRAM();
 
     /**
      * Given a username and an authToken, insert them into the DB.
@@ -56,6 +56,9 @@ public class AuthDAO {
     public void deleteAuthToken(String authToken) throws DataAccessException {
         if (authNull(authToken) || authEmpty(authToken)) {
             throw new DataAccessException("authToken can't be null or empty.");
+        }
+        if (!authInDB(authToken)) {
+            throw new DataAccessException("unauthorized");
         }
         db.removeAuth(authToken);
     }

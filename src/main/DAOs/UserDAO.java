@@ -11,14 +11,12 @@ import java.util.HashMap;
  */
 public class UserDAO {
 
-    private static Database db = new DataBaseRAM();
+    private Database db = new DataBaseRAM();
 
     /**
      * Takes the following parameters and stores them in the DB as a User.
      *
-     * @param username A string that represents username.
-     * @param password A string that represents a password.
-     * @param email A string that represents a user's email.
+     * @param user A user object.
      * @throws DataAccessException If an error occurs trying to insert a new user.
      */
     public void insertNewUser(User user) throws DataAccessException {
@@ -49,7 +47,7 @@ public class UserDAO {
         }
 
         if (!userInDB(username)) {
-            throw new DataAccessException("User doesn't exist in database.");
+            throw new DataAccessException("unauthorized");
         }
 
         return db.readUser(username);

@@ -29,7 +29,7 @@ public class RegisterService {
             userDao.insertNewUser(new User(request.getUsername(), request.getPassword(), request.getEmail()));
             var authToken = UUID.randomUUID().toString();
             var authDao = new AuthDAO();
-            var authTokenOb = new AuthToken(request.getUsername(), authToken);
+            var authTokenOb = new AuthToken(authToken, request.getUsername());
             authDao.insertAuthToken(authTokenOb);
 
             var response = new RegisterServiceRes();

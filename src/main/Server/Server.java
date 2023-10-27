@@ -1,5 +1,7 @@
 package Server;
 import Handlers.clearAppHand;
+import Handlers.loginHand;
+import Handlers.logoutHand;
 import Handlers.registerUserHand;
 import com.google.gson.Gson;
 import dataAccess.DataAccessException;
@@ -57,11 +59,14 @@ public class Server {
     }
 
     private Object loginUser(Request req, Response res) {
-        // create and return a handler.
-        return null;
+        var handle = new loginHand();
+        return handle.handleLogin(req, res);
     }
 
     private Object logoutUser(Request req, Response res) {
-        return null;
+        // Create logout handler
+        var handle = new logoutHand();
+        // return logout handler
+        return handle.handleLogout(req, res);
     }
 }

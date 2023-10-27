@@ -16,7 +16,7 @@ import java.util.HashMap;
 public class GameDAO {
 
 
-    private static Database db = new DataBaseRAM();
+    private Database db = new DataBaseRAM();
 
 
     /**
