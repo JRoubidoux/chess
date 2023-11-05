@@ -3,26 +3,15 @@ package Database;
 import Models.AuthToken;
 import Models.Game;
 import Models.User;
-import Req_and_Result.LoginServiceRes;
-import Req_and_Result.genRes;
-import com.google.gson.Gson;
-import spark.Response;
-
 import java.util.ArrayList;
-import java.util.HashMap;
 
 public class DatabaseSQL implements Database {
+
+    private static dataAccess.Database db = new dataAccess.Database();
     @Override
     public void writeGame(Game game) {
 
     }
-
-    private Object turnToJson(Game game) {
-
-        var body = new Gson().toJson(game);
-        return body;
-    }
-
 
     @Override
     public void writeAuth(AuthToken authToken) {
