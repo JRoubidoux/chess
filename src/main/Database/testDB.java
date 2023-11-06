@@ -19,8 +19,9 @@ public class testDB {
         gameimp.setBoard(chessboardimp);
         game.setGame(gameimp);
         game.setGameName("gamename");
-        var thing = db.turnToJson(game);
-        var newGame = db.turnToJava(thing, Game.class);
+        var thing = db.turnToJson((ChessBoardImp) game.getGame().getBoard());
+        var newGame = db.turnToJava((String) thing);
+        var dummy = "heet";
 
     }
 }

@@ -10,7 +10,7 @@ import dataAccess.DataAccessException;
  */
 public class AuthDAO {
 
-    private Database db = new DataBaseRAM();
+    private Database db = new DatabaseSQL();
 
     /**
      * Given a username and an authToken, insert them into the DB.

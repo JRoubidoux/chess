@@ -1,7 +1,6 @@
 package DAOs;
 
-import Database.DataBaseRAM;
-import Database.Database;
+import Database.*;
 import Models.Game;
 import chess.ChessGame;
 import dataAccess.DataAccessException;
@@ -14,7 +13,7 @@ import java.util.ArrayList;
 public class GameDAO {
 
 
-    private Database db = new DataBaseRAM();
+    private Database db = new DatabaseSQL();
 
 
     /**

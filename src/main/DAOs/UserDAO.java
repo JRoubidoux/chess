@@ -9,7 +9,7 @@ import dataAccess.DataAccessException;
  */
 public class UserDAO {
 
-    private Database db = new DataBaseRAM();
+    private Database db = new DatabaseSQL();
 
     /**
      * Takes the following parameters and stores them in the DB as a User.
