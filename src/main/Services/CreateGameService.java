@@ -6,6 +6,7 @@ import Models.Game;
 import Req_and_Result.CreateGameServiceReq;
 import Req_and_Result.CreateGameServiceRes;
 import Req_and_Result.ListGamesServiceRes;
+import chess.ChessGameImp;
 import dataAccess.DataAccessException;
 
 /**
@@ -40,6 +41,7 @@ public class CreateGameService {
             }
             game.setGameName(request.getGameName());
             game.setGameID(gameIDCounter);
+            game.setGame(new ChessGameImp());
             gameDao.insertNewGame(game);
             var response = new CreateGameServiceRes();
             response.setGameID(gameIDCounter);

@@ -16,6 +16,7 @@ import dataAccess.DataAccessException;
 
 import java.io.IOException;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 
 public class DatabaseSQL implements Database {
@@ -25,57 +26,257 @@ public class DatabaseSQL implements Database {
     public void writeGame(Game game) {
         var gameName = game.getGameName();
         var gameID = game.getGameID();
-        var currTurn = game.getGame().getTeamTurn();
+        String currTurn = null;
+        if (game.getGame().getTeamTurn() == ChessGame.TeamColor.WHITE) {
+            currTurn = "WHITE";
+        }
+        if (game.getGame().getTeamTurn() == ChessGame.TeamColor.BLACK) {
+            currTurn = "BLACK";
+        }
         var currBoard = game.getGame().getBoard();
         var json = turnToJson((ChessBoardImp) currBoard);
+        var whiteU = game.getWhiteUsername();
+        var blackU = game.getBlackUsername();
 
+        try (var conn = db.getConnection()) {
+            conn.setCatalog("chess");
+
+            try (var preparedStatement = conn.prepareStatement("INSERT INTO games (gameName, gameID, currentTurn, blackUser, whiteUser, gameState) VALUES(?, ?, ?, ?, ?, ?)")) {
+                preparedStatement.setString(1, gameName);
+                preparedStatement.setInt(2, gameID);
+                preparedStatement.setString(3, currTurn);
+                preparedStatement.setString(4, blackU);
+                preparedStatement.setString(5, whiteU);
+                preparedStatement.setString(6, (String) json);
+
+                preparedStatement.executeUpdate();
+                db.closeConnection(conn);
+
+            }
+        }
+        catch (DataAccessException | SQLException e) {
+            System.out.println(e);
+        }
 
     }
 
 
     @Override
     public void writeAuth(AuthToken authToken) {
+        var username = authToken.getUsername();
+        var authTokenS = authToken.getAuthToken();
 
+        try (var conn = db.getConnection()) {
+            conn.setCatalog("chess");
+
+            try (var preparedStatement = conn.prepareStatement("INSERT INTO authtokens (authToken, username) VALUES(?, ?)")) {
+                preparedStatement.setString(1, authTokenS);
+                preparedStatement.setString(2, username);
+
+                preparedStatement.executeUpdate();
+                db.closeConnection(conn);
+
+            }
+        }
+        catch (DataAccessException | SQLException e) {
+            System.out.println(e);
+        }
     }
 
     @Override
     public void writeUser(User user) {
+        var username = user.getUsername();
+        var email = user.getEmail();
+        var password = user.getPassword();
 
+        try (var conn = db.getConnection()) {
+            conn.setCatalog("chess");
+
+            try (var preparedStatement = conn.prepareStatement("INSERT INTO users (username, password, email) VALUES(?, ?, ?)")) {
+                preparedStatement.setString(1, username);
+                preparedStatement.setString(2, password);
+                preparedStatement.setString(3, email);
+
+                preparedStatement.executeUpdate();
+                db.closeConnection(conn);
+
+            }
+        }
+        catch (DataAccessException | SQLException e) {
+            System.out.println(e);
+        }
     }
 
     @Override
     public Game readGame(Integer gameID) {
-        return null;
+        try (var conn = db.getConnection()) {
+            conn.setCatalog("chess");
+            try (var preparedStatement = conn.prepareStatement("SELECT gameName, whiteUser, blackUser, currentTurn, gameState FROM games WHERE gameID=?")) {
+                preparedStatement.setString(1, String.valueOf(gameID));
+                try (var rs = preparedStatement.executeQuery()) {
+
+                    if (!rs.next()) {
+                        db.closeConnection(conn);
+                        return null;
+                    }
+                    else {
+                        var gameName = rs.getString("gameName");
+                        var whiteUser = rs.getString("whiteUser");
+                        var blackUser = rs.getString("blackUser");
+                        var currentTurn = rs.getString("currentTurn");
+                        var gameState = rs.getString("gameState");
+                        ChessGame.TeamColor color = null;
+                        if (currentTurn.equals("WHITE")) {
+                            color = ChessGame.TeamColor.WHITE;
+                        }
+                        if (currentTurn.equals("BLACK")) {
+                            color = ChessGame.TeamColor.BLACK;
+                        }
+                        var chessBoard = turnToJava(gameState);
+                        var gameImp = new ChessGameImp();
+                        gameImp.setBoard(chessBoard);
+                        gameImp.setTeamTurn(color);
+                        var gameModel = new Game();
+                        gameModel.setGameName(gameName);
+                        gameModel.setGameID(gameID);
+                        gameModel.setWhiteUsername(whiteUser);
+                        gameModel.setBlackUsername(blackUser);
+                        gameModel.setGame(gameImp);
+                        db.closeConnection(conn);
+                        return gameModel;
+                    }
+                }
+            }
+        }
+        catch (DataAccessException | SQLException e) {
+            return null;
+        }
     }
 
     @Override
     public User readUser(String username) {
-        return null;
+        //
+        try (var conn = db.getConnection()) {
+            conn.setCatalog("chess");
+            try (var preparedStatement = conn.prepareStatement("SELECT password, email FROM users WHERE username=?")) {
+                preparedStatement.setString(1, username);
+                try (var rs = preparedStatement.executeQuery()) {
+
+                    if (!rs.next()) {
+                        db.closeConnection(conn);
+                        return null;
+                    }
+                    else {
+                        var password = rs.getString("password");
+                        var email = rs.getString("email");
+                        db.closeConnection(conn);
+                        return new User(username, password, email);
+                    }
+                }
+            }
+        }
+        catch (DataAccessException | SQLException e) {
+            return null;
+        }
     }
 
     @Override
     public AuthToken readAuth(String authToken) {
-        return null;
+        try (var conn = db.getConnection()) {
+            conn.setCatalog("chess");
+            try (var preparedStatement = conn.prepareStatement("SELECT username FROM authtokens WHERE authToken=?")) {
+                preparedStatement.setString(1, authToken);
+                try (var rs = preparedStatement.executeQuery()) {
+
+                    if (!rs.next()) {
+                        db.closeConnection(conn);
+                        return null;
+                    }
+                    else {
+                        var username = rs.getString("username");
+                        db.closeConnection(conn);
+                        return new AuthToken(authToken, username);
+                    }
+                }
+            }
+        }
+        catch (DataAccessException | SQLException e) {
+            return null;
+        }
     }
 
     @Override
     public void removeGame(Integer gameID) {
-
+        try (var conn = db.getConnection()) {
+            conn.setCatalog("chess");
+            try (var preparedStatement = conn.prepareStatement("DELETE FROM games WHERE gameID=?")) {
+                preparedStatement.setInt(1, gameID);
+                preparedStatement.executeUpdate();
+            }
+        }
+        catch (DataAccessException | SQLException e) {
+            System.out.println(e);
+        }
     }
 
     @Override
     public void removeAuth(String authToken) {
-
+        try (var conn = db.getConnection()) {
+            conn.setCatalog("chess");
+            try (var preparedStatement = conn.prepareStatement("DELETE FROM authTokens WHERE authToken=?")) {
+                preparedStatement.setString(1,authToken);
+                preparedStatement.executeUpdate();
+            }
+        }
+        catch (DataAccessException | SQLException e) {
+            System.out.println(e);
+        }
     }
 
     @Override
     public void removeUser(String username) {
-
+        try (var conn = db.getConnection()) {
+            conn.setCatalog("chess");
+            try (var preparedStatement = conn.prepareStatement("DELETE FROM users WHERE username=?")) {
+                preparedStatement.setString(1,username);
+                preparedStatement.executeUpdate();
+            }
+        }
+        catch (DataAccessException | SQLException e) {
+            System.out.println(e);
+        }
     }
 
     @Override
     public void updateGame(Game game) {
+        var gameID = game.getGameID();
+        String currTurn = null;
+        if (game.getGame().getTeamTurn() == ChessGame.TeamColor.WHITE) {
+            currTurn = "WHITE";
+        }
+        if (game.getGame().getTeamTurn() == ChessGame.TeamColor.BLACK) {
+            currTurn = "BLACK";
+        }
+        var currBoard = game.getGame().getBoard();
+        var json = turnToJson((ChessBoardImp) currBoard);
+        var whiteU = game.getWhiteUsername();
+        var blackU = game.getBlackUsername();
 
+        try (var conn = db.getConnection()) {
+            conn.setCatalog("chess");
+            try (var preparedStatement = conn.prepareStatement("UPDATE games SET whiteUser=?, blackUser=?, gameState=?, currentTurn=?  WHERE gameID=?")) {
+                preparedStatement.setString(1, whiteU);
+                preparedStatement.setString(2, blackU);
+                preparedStatement.setString(3, (String) json);
+                preparedStatement.setString(4, currTurn);
+                preparedStatement.setInt(5, gameID);
+
+                preparedStatement.executeUpdate();
+            }
+        }
+        catch (DataAccessException | SQLException e) {
+            System.out.println(e);
+        }
     }
 
     @Override
@@ -85,42 +286,141 @@ public class DatabaseSQL implements Database {
 
     @Override
     public ArrayList<Game> readAllGames() {
-        return null;
+        try (var conn = db.getConnection()) {
+            conn.setCatalog("chess");
+            try (var preparedStatement = conn.prepareStatement("SELECT gameID FROM games")) {
+                try (var rs = preparedStatement.executeQuery()) {
+
+                    var games = new ArrayList<Game>();
+                    while (rs.next()) {
+                        games.add(readGame(rs.getInt("gameID")));
+                    }
+                    db.closeConnection(conn);
+                    return games;
+                }
+            }
+        } catch (SQLException | DataAccessException e) {
+            return null;
+        }
     }
 
     @Override
     public void clearGames() {
+        try (var conn = db.getConnection()) {
+            configureDatabase();
 
+            conn.setCatalog("chess");
+            Statement statement = conn.createStatement();
+
+            // SQL statement to drop the table
+            String sql = "DROP TABLE " + "games";
+
+            // Execute the SQL statement
+            statement.execute(sql);
+            configureDatabase();
+            db.closeConnection(conn);
+        } catch (SQLException | DataAccessException e) {
+            System.out.println(e);
+        }
     }
 
-    @Override
+        @Override
     public void clearUsers() {
+            try (var conn = db.getConnection()) {
+                configureDatabase();
 
+                conn.setCatalog("chess");
+                Statement statement = conn.createStatement();
+
+                // SQL statement to drop the table
+                String sql = "DROP TABLE " + "users";
+
+                // Execute the SQL statement
+                statement.execute(sql);
+                configureDatabase();
+                db.closeConnection(conn);
+            } catch (SQLException | DataAccessException e) {
+                System.out.println(e);
+            }
     }
 
     @Override
     public void clearAuth() {
+        try (var conn = db.getConnection()) {
+            configureDatabase();
 
+            conn.setCatalog("chess");
+            Statement statement = conn.createStatement();
+
+            // SQL statement to drop the table
+            String sql = "DROP TABLE " + "authtokens";
+
+            // Execute the SQL statement
+            statement.execute(sql);
+            configureDatabase();
+            db.closeConnection(conn);
+        } catch (SQLException | DataAccessException e) {
+            System.out.println(e);
+        }
     }
 
     @Override
     public void clearDB() {
+        clearAuth();
+        clearUsers();
+        clearGames();
 
     }
 
     @Override
     public boolean noGamesInDB() {
-        return false;
+        return readAllGames() == null;
     }
 
     @Override
     public boolean noUsersInDB() {
-        return false;
+        try (var conn = db.getConnection()) {
+            conn.setCatalog("chess");
+            try (var preparedStatement = conn.prepareStatement("SELECT username FROM users")) {
+                try (var rs = preparedStatement.executeQuery()) {
+
+                    if (!rs.next()) {
+                        db.closeConnection(conn);
+                        return false;
+                    }
+                    else {
+                        db.closeConnection(conn);
+                        return true;
+                    }
+                }
+            }
+        }
+        catch (DataAccessException | SQLException e) {
+            return false;
+        }
     }
 
     @Override
     public boolean noAuthInDB() {
-        return false;
+        try (var conn = db.getConnection()) {
+            conn.setCatalog("chess");
+            try (var preparedStatement = conn.prepareStatement("SELECT authToken FROM authTokens")) {
+                try (var rs = preparedStatement.executeQuery()) {
+
+                    if (!rs.next()) {
+                        db.closeConnection(conn);
+                        return false;
+                    }
+                    else {
+                        db.closeConnection(conn);
+                        return true;
+                    }
+                }
+            }
+        }
+        catch (DataAccessException | SQLException e) {
+            return false;
+        }
     }
 
     public void configureDatabase() throws SQLException {
@@ -131,13 +431,13 @@ public class DatabaseSQL implements Database {
             conn.setCatalog("chess");
 
             var createGameTable = """
-            CREATE TABLE  IF NOT EXISTS Games (
+            CREATE TABLE IF NOT EXISTS Games (
                 gameName VARCHAR(255) NOT NULL,
                 gameID INT NOT NULL,
                 whiteUser VARCHAR(255),
                 blackUser VARCHAR(255),
                 currentTurn VARCHAR(255),
-                gameState TEXT NOT NULL
+                gameState LONGTEXT NOT NULL
             )""";
 
 
@@ -147,10 +447,26 @@ public class DatabaseSQL implements Database {
 
             var createUserTable = """
             CREATE TABLE IF NOT EXISTS Users (
-                PrimID INT NOT NULL,
                 username VARCHAR(255) NOT NULL,
-                
+                password VARCHAR(255) NOT NULL,
+                email VARCHAR(255) NOT NULL
             )""";
+
+            try (var createTableStatement = conn.prepareStatement(createUserTable)) {
+                createTableStatement.executeUpdate();
+            }
+
+            var createAuthTable = """
+            CREATE TABLE IF NOT EXISTS AuthTokens (
+                authToken VARCHAR(255) NOT NULL,
+                username VARCHAR(255) NOT NULL
+            )""";
+
+            try (var createTableStatement = conn.prepareStatement(createAuthTable)) {
+                createTableStatement.executeUpdate();
+            }
+            db.closeConnection(conn);
+
         }
         catch (DataAccessException e) {
             System.out.println(e);

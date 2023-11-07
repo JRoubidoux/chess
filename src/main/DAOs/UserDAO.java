@@ -4,6 +4,8 @@ import Database.*;
 import Models.User;
 import dataAccess.DataAccessException;
 
+import java.sql.SQLException;
+
 /**
  * Class that represents the Data Access Object that deals with user information.
  */
