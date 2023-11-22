@@ -1,9 +1,5 @@
 package chess;
 
-import chess.ChessMove;
-import chess.ChessPiece;
-import chess.ChessPosition;
-
 import java.util.Objects;
 
 /**

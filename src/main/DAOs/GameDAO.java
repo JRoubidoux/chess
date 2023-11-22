@@ -132,7 +132,7 @@ public class GameDAO {
         else { return db.readGame(gameID) != null; }
     }
 
-    public boolean noGamesinDB() {
+    private boolean noGamesinDB() {
         return db.noGamesInDB();
     }
 

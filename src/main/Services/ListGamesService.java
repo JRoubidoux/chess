@@ -5,7 +5,6 @@ import DAOs.GameDAO;
 import Models.Game;
 import Req_and_Result.ListGamesServiceReq;
 import Req_and_Result.ListGamesServiceRes;
-import Req_and_Result.LogoutServiceRes;
 import dataAccess.DataAccessException;
 
 import java.util.ArrayList;

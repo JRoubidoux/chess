@@ -1,7 +1,5 @@
 package Req_and_Result;
 
-import chess.ChessGame;
-
 /**
  * Request Class to support the JoinGame Service class.
  */

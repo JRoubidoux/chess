@@ -1,8 +1,5 @@
 package Req_and_Result;
 
-import java.util.HashMap;
-import java.util.Map;
-
 /**
  * Response Class to support the Register Service class.
  */

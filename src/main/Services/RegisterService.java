@@ -4,7 +4,6 @@ import DAOs.AuthDAO;
 import DAOs.UserDAO;
 import Models.AuthToken;
 import Models.User;
-import Req_and_Result.ClearAppServiceRes;
 import Req_and_Result.RegisterServiceReq;
 import Req_and_Result.RegisterServiceRes;
 import dataAccess.DataAccessException;

@@ -2,11 +2,8 @@ package Services;
 
 import DAOs.AuthDAO;
 import DAOs.GameDAO;
-import Models.Game;
-import Req_and_Result.CreateGameServiceRes;
 import Req_and_Result.JoinGameServiceReq;
 import Req_and_Result.JoinGameServiceRes;
-import chess.ChessGame;
 import dataAccess.DataAccessException;
 
 /**

@@ -70,19 +70,19 @@ public class AuthDAO {
         return db.readAuth(authToken) != null;
     }
 
-    public boolean authNull(String authToken) {
+    private boolean authNull(String authToken) {
         return authToken == null;
     }
 
-    public boolean authEmpty(String authToken) {
+    private boolean authEmpty(String authToken) {
         return authToken.isEmpty();
     }
 
-    public boolean authUserNull(String authToken, String username) {
+    private boolean authUserNull(String authToken, String username) {
         return (authNull(authToken) || (username == null));
     }
 
-    public boolean authUserEmpty(String authToken, String username) {
+    private boolean authUserEmpty(String authToken, String username) {
         return (authNull(authToken) || (username.isEmpty()));
     }
 }

@@ -1,7 +1,5 @@
 package chess;
 
-import chess.ChessPosition;
-
 import java.util.Objects;
 
 /**

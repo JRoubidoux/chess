@@ -4,8 +4,6 @@ import Database.*;
 import Models.User;
 import dataAccess.DataAccessException;
 
-import java.sql.SQLException;
-
 /**
  * Class that represents the Data Access Object that deals with user information.
  */
@@ -53,28 +51,6 @@ public class UserDAO {
         return db.readUser(username);
     }
 
-    /**
-     * Update User information in the DB.
-     *
-     * @param username A string that represents username.
-     * @param password A string that represents a password.
-     * @param email A string that represents a user's email.
-     * @throws DataAccessException If an error occurs trying to update a user.
-     */
-    public void updateUser(String username, String password, String email) throws DataAccessException {
-        if (userPassEmailNull(username, password, email) || userPassEmailEmpty(username, password, email)) {
-            throw new DataAccessException("Must provide a username, password and email.");
-        }
-
-        if (!userInDB(username)) {
-            throw new DataAccessException("This user isn't in the DB.");
-        }
-
-        else {
-            db.updateUser(new User(username, password, email));
-        }
-
-    }
 
     /**
      * Given a username, delete the User information in the DB.
@@ -99,19 +75,19 @@ public class UserDAO {
         return db.readUser(username) != null;
     }
 
-    public boolean userNull(String username) {
+    private boolean userNull(String username) {
         return username == null;
     }
 
-    public boolean userEmpty(String username) {
+    private boolean userEmpty(String username) {
         return username.isEmpty();
     }
 
-    public boolean userPassEmailNull(String username, String password, String email) {
+    private boolean userPassEmailNull(String username, String password, String email) {
         return (userNull(username) || (password == null) || (email == null));
     }
 
-    public boolean userPassEmailEmpty(String username, String password, String email) {
+    private boolean userPassEmailEmpty(String username, String password, String email) {
         return (userEmpty(username) || (password.isEmpty()) || (email.isEmpty()));
     }
 }

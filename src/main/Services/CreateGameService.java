@@ -5,7 +5,6 @@ import DAOs.GameDAO;
 import Models.Game;
 import Req_and_Result.CreateGameServiceReq;
 import Req_and_Result.CreateGameServiceRes;
-import Req_and_Result.ListGamesServiceRes;
 import chess.ChessGameImp;
 import dataAccess.DataAccessException;
 

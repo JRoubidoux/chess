@@ -4,7 +4,6 @@ import Models.Game;
 import chess.ChessBoardImp;
 import chess.ChessGameImp;
 
-import java.sql.SQLDataException;
 import java.sql.SQLException;
 
 

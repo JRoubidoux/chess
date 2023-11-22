@@ -1,14 +1,9 @@
 package Services;
 
 import DAOs.AuthDAO;
-import DAOs.UserDAO;
-import Models.AuthToken;
-import Req_and_Result.LoginServiceRes;
 import Req_and_Result.LogoutServiceReq;
 import Req_and_Result.LogoutServiceRes;
 import dataAccess.DataAccessException;
-
-import java.util.UUID;
 
 /**
  * Class that handles logouts on the server.

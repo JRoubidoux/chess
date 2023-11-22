@@ -1,17 +1,10 @@
 package Handlers;
 
-import Req_and_Result.LoginServiceReq;
-import Req_and_Result.LoginServiceRes;
 import Req_and_Result.LogoutServiceReq;
 import Req_and_Result.genRes;
-import Services.LoginService;
 import Services.LogoutService;
-import com.google.gson.Gson;
 import spark.Request;
 import spark.Response;
-
-import java.util.HashMap;
-import java.util.Map;
 
 public class logoutHand extends generalHand{
 

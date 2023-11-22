@@ -1,10 +1,7 @@
 package Services;
 
-import Req_and_Result.RegisterServiceReq;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
-import java.util.*;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 class RegisterServiceTest extends testSetup{

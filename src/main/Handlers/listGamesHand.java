@@ -2,10 +2,8 @@ package Handlers;
 
 import Req_and_Result.ListGamesServiceReq;
 import Req_and_Result.ListGamesServiceRes;
-import Req_and_Result.LogoutServiceReq;
 import Req_and_Result.genRes;
 import Services.ListGamesService;
-import Services.LogoutService;
 import com.google.gson.Gson;
 import spark.Request;
 import spark.Response;

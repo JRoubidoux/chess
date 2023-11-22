@@ -1,18 +1,7 @@
 package Services;
 
-import DAOs.AuthDAO;
-import DAOs.GameDAO;
-import DAOs.UserDAO;
-import Database.DataBaseRAM;
-import Req_and_Result.LoginServiceReq;
-import Req_and_Result.RegisterServiceReq;
-import dataAccess.DataAccessException;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
-
-import java.util.HashMap;
-import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 
