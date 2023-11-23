@@ -23,9 +23,9 @@ public class DatabaseSQL implements Database {
 
     private static dataAccess.Database db = new dataAccess.Database();
     @Override
-    public void writeGame(Game game) {
+    public Integer writeGame(Game game) {
         var gameName = game.getGameName();
-        var gameID = game.getGameID();
+        Integer gameID = null;
         String currTurn = null;
         if (game.getGame().getTeamTurn() == ChessGame.TeamColor.WHITE) {
             currTurn = "WHITE";
@@ -41,16 +41,23 @@ public class DatabaseSQL implements Database {
         try (var conn = db.getConnection()) {
             conn.setCatalog("chess");
 
-            try (var preparedStatement = conn.prepareStatement("INSERT INTO games (gameName, gameID, currentTurn, blackUser, whiteUser, gameState) VALUES(?, ?, ?, ?, ?, ?)")) {
+            try (var preparedStatement = conn.prepareStatement("INSERT INTO games (gameName, currentTurn, blackUser, whiteUser, gameState) VALUES(?, ?, ?, ?, ?)", Statement.RETURN_GENERATED_KEYS)) {
                 preparedStatement.setString(1, gameName);
-                preparedStatement.setInt(2, gameID);
-                preparedStatement.setString(3, currTurn);
-                preparedStatement.setString(4, blackU);
-                preparedStatement.setString(5, whiteU);
-                preparedStatement.setString(6, (String) json);
+                //preparedStatement.setInt(2, gameID);
+                preparedStatement.setString(2, currTurn);
+                preparedStatement.setString(3, blackU);
+                preparedStatement.setString(4, whiteU);
+                preparedStatement.setString(5, (String) json);
 
-                preparedStatement.executeUpdate();
+                int affectedRows = preparedStatement.executeUpdate();
+                if (affectedRows > 0) {
+                    var genKeys = preparedStatement.getGeneratedKeys();
+                    if (genKeys.next()) {
+                        gameID = genKeys.getInt(1);
+                    }
+                }
                 db.closeConnection(conn);
+                return gameID;
 
             }
         }
@@ -58,6 +65,7 @@ public class DatabaseSQL implements Database {
             System.out.println(e);
         }
 
+        return gameID;
     }
 
 
@@ -433,7 +441,7 @@ public class DatabaseSQL implements Database {
             var createGameTable = """
             CREATE TABLE IF NOT EXISTS Games (
                 gameName VARCHAR(255) NOT NULL,
-                gameID INT NOT NULL,
+                gameID INT AUTO_INCREMENT PRIMARY KEY,
                 whiteUser VARCHAR(255),
                 blackUser VARCHAR(255),
                 currentTurn VARCHAR(255),

@@ -1,11 +1,8 @@
 import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import com.google.gson.*;
 
 import java.io.*;
-import java.lang.reflect.Type;
 import java.net.*;
-import java.util.Collection;
 import java.util.HashMap;
 import java.lang.*;
 
@@ -17,54 +14,44 @@ public class serverFacade {
         this.serverUrl = serverUrl;
     }
 
-    public String clearApplication() {
-        var path = "/db";
-        // return this.makeRequest("DELETE", path, pet, Pet.class);
-
-        // String method, String path, Object request, Class<T> responseClass
-        String method = "DELETE";
-
+    public JsonObject makeRequest(boolean body, HashMap<String, ?> map, String path, String method, boolean header, String authToken) {
         try {
             URL url = (new URI(serverUrl + path)).toURL();
             HttpURLConnection http = (HttpURLConnection) url.openConnection();
             http.setRequestMethod(method);
             http.setDoOutput(true);
 
-            //writeBody(request, http);
+            if (header) {
+                writeHeader(authToken, http);
+            }
+            if (body) {
+                writeBody(map, http);
+            }
+
             http.connect();
-            var temp = readBody(http);
-            return "pass";
+            var status = http.getResponseCode();
+            if (status == 200) {
+                var temp = readBody(http);
+                temp.add("status", new JsonPrimitive(status));
+                http.disconnect();
+                return temp;
+            }
+            else {
+                var temp = new JsonObject();
+                temp.add("status", new JsonPrimitive(status));
+                http.disconnect();
+                return temp;
+            }
+
         } catch (Exception ex) {
             System.out.println(ex);
-            return "pass";
+            return null;
         }
     }
 
-//    public String register(String[] params) {
-//        var path = "/user";
-//        return this.makeRequest("POST", path);
-//    }
-
-
-//    private <T> T makeRequest(String method, String path, Object request, Class<T> responseClass){
-//        try {
-//            URL url = (new URI(serverUrl + path)).toURL();
-//            HttpURLConnection http = (HttpURLConnection) url.openConnection();
-//            http.setRequestMethod(method);
-//            http.setDoOutput(true);
-//
-//            writeBody(request, http);
-//            http.connect();
-//            throwIfNotSuccessful(http);
-//            return readBody(http, responseClass);
-//        } catch (Exception ex) {
-//            throw new ResponseException(500, ex.getMessage());
-//        }
-//    }
-
     private static void writeBody(Object request, HttpURLConnection http) throws IOException {
         if (request != null) {
-            http.addRequestProperty("Content-Type", "application/json");
+            http.setRequestProperty("Content-Type", "application/json");
             String reqData = new Gson().toJson(request);
             try (OutputStream reqBody = http.getOutputStream()) {
                 reqBody.write(reqData.getBytes());
@@ -72,30 +59,177 @@ public class serverFacade {
         }
     }
 
-//    private static <T> T readBody(HttpURLConnection http, Class<T> responseClass) throws IOException {
-//        T response = null;
-//        if (http.getContentLength() < 0) {
-//            try (InputStream respBody = http.getInputStream()) {
-//                InputStreamReader reader = new InputStreamReader(respBody);
-//                if (responseClass != null) {
-//                    response = reader;
-//                }
-//            }
-//        }
-//        return response;
-//    }
+    private static void writeHeader(String authToken, HttpURLConnection http) throws IOException {
+        if (authToken != null) {
+            http.setRequestProperty("Authorization", authToken);
+        }
+    }
 
-    private static InputStreamReader readBody(HttpURLConnection http) throws IOException {
-        InputStreamReader response = null;
+    private static JsonObject readBody(HttpURLConnection http) throws IOException {
+        JsonObject response = null;
         if (http.getContentLength() < 0) {
             try (InputStream respBody = http.getInputStream()) {
                 InputStreamReader reader = new InputStreamReader(respBody);
-                response = reader;
+                try (BufferedReader bReader = new BufferedReader(reader)) {
+                    StringBuilder respStringBuilder = new StringBuilder();
+                    String line;
+                    while ((line = bReader.readLine()) != null) {
+                        respStringBuilder.append(line);
+                    }
+
+                    response = new Gson().fromJson(respStringBuilder.toString(), JsonObject.class);
+                }
             }
         }
         return response;
     }
 
+    public String login(String[] params) {
+        var path = "/session";
+        String method = "POST";
+
+        var mapOfParams = new HashMap<String, String>();
+        for (int i = 0; i < params.length; i++) {
+            if (i == 0) {
+                mapOfParams.put("username", params[i]);
+            }
+            else if (i == 1) {
+                mapOfParams.put("password", params[i]);
+            }
+        }
+        var jsonObject = makeRequest(true, mapOfParams, path, method, false, null);
+
+        if (jsonObject.isJsonNull()) {
+            return null;
+        }
+        else {
+            var status = jsonObject.get("status").getAsInt();
+            if (status == 200) {
+                var username = jsonObject.get("username").getAsString();
+                var authToken = jsonObject.get("authToken").getAsString();
+                System.out.printf("Logged in as %s", username);
+                return authToken;
+            }
+            else if (status == 401){
+                System.out.println("Unauthorized. Try again. \n");
+                return null;
+            }
+            else {
+                System.out.println("Other error. Try again. \n");
+                return null;
+            }
+        }
+    }
+
+    public String register(String[] params) {
+        var path = "/user";
+        String method = "POST";
+        var mapOfParams = new HashMap<String, String>();
+        for (int i = 0; i < params.length; i++) {
+            if (i == 0) {
+                mapOfParams.put("username", params[i]);
+            }
+            else if (i == 1) {
+                mapOfParams.put("password", params[i]);
+            }
+            else {
+                mapOfParams.put("email", params[i]);
+            }
+        }
+        var jsonObject = makeRequest(true, mapOfParams, path, method, false, null);
+
+        if (jsonObject == null) {
+            return null;
+        }
+        else {
+            var status = jsonObject.get("status").getAsInt();
+            if (status == 200) {
+                var username = jsonObject.get("username").getAsString();
+                var authToken = jsonObject.get("authToken").getAsString();
+                System.out.printf("Logged in as %s", username);
+                return authToken;
+            }
+            else if (status == 400){
+                System.out.println("Bad request. Try again. \n");
+                return null;
+            }
+            else if (status == 403) {
+                System.out.println("Already taken. Try again. \n");
+                return null;
+            }
+            else {
+                System.out.println("Other error. Try again. \n");
+                return null;
+            }
+        }
+    }
+
+    public String create(String[] params, String authToken) {
+        var path = "/game";
+        String method = "POST";
+        var mapOfParams = new HashMap<String, String>();
+        for (int i = 0; i < params.length; i++) {
+            if (i == 0) {
+                mapOfParams.put("gameName", params[i]);
+            }
+        }
+        var jsonObject = makeRequest(true, mapOfParams, path, method, true, authToken);
+
+        if (jsonObject == null) {
+            return null;
+        }
+        else {
+            var status = jsonObject.get("status").getAsInt();
+            if (status == 200) {
+                var gameID = jsonObject.get("gameID").getAsString();
+                System.out.printf("Game: %s was created", mapOfParams.get("gameName"));
+                return gameID;
+            }
+            else if (status == 400){
+                System.out.println("Bad request. Try again. \n");
+                return null;
+            }
+            else if (status == 401) {
+                System.out.println("Unauthorized. Try again. \n");
+                return null;
+            }
+            else {
+                System.out.println("Other error. Try again. \n");
+                return null;
+            }
+        }
+    }
+
+    public String list(String[] params, String authToken) {
+        var path = "/game";
+        String method = "GET";
+
+        var jsonObject = makeRequest(false, null, path, method, true, authToken);
+
+        if (jsonObject == null) {
+            return null;
+        }
+        else {
+            var status = jsonObject.get("status").getAsInt();
+            if (status == 200) {
+                var gameID = jsonObject.get("gameID").getAsString();
+                System.out.printf("Game: %s was created", "gameName");
+                return gameID;
+            }
+            else if (status == 400){
+                System.out.println("Bad request. Try again. \n");
+                return null;
+            }
+            else if (status == 401) {
+                System.out.println("Unauthorized. Try again. \n");
+                return null;
+            }
+            else {
+                System.out.println("Other error. Try again. \n");
+                return null;
+            }
+        }
+    }
 }
 
 

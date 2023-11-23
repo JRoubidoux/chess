@@ -8,7 +8,7 @@ import java.util.ArrayList;
 
 public interface Database {
 
-    public void writeGame(Game game);
+    public Integer writeGame(Game game);
     public void writeAuth(AuthToken authToken);
     public void writeUser(User user);
 

@@ -23,12 +23,11 @@ public class Repl {
             var cmd = (tokens.length > 0) ? tokens[0] : "help";
             var params = Arrays.copyOfRange(tokens, 1, tokens.length);
             try {
-                switch (line) {
+                switch (cmd) {
                     case "help" -> helpPromptLoggedOut();
                     case "register" -> result = register(params);
                     case "login" -> result = login(params);
                     case "quit" -> result = "quit";
-                    case "clear_app" -> clear();
                     default -> System.out.println("invalid input, try again.");
                 }
             } catch (Throwable e) {
@@ -39,29 +38,33 @@ public class Repl {
     }
 
     public String register(String[] params) {
-        var successfulReg = true;
-        if (successfulReg) {
-            return runLoggedInLoop();
+        var authToken = serverConn.register(params);
+        if (authToken != null) {
+            return runLoggedInLoop(authToken);
         }
         else {
-            System.out.println("no good.");
             return "";
         }
-    }
-
-    public void clear() {
-        serverConn.clearApplication();
     }
 
     public String login(String[] params) {
-        var successfulLogin = true;
-        if (successfulLogin) {
-            return runLoggedInLoop();
+        var authToken = serverConn.login(params);
+        if (authToken != null) {
+            return runLoggedInLoop(authToken);
         }
         else {
-            System.out.println("no good.");
             return "";
         }
+    }
+
+    public String create(String[] params, String authToken) {
+        var gameID = serverConn.create(params, authToken);
+        return "";
+    }
+
+    public String list(String[] params, String authToken) {
+        var gameID = serverConn.list(params, authToken);
+        return "";
     }
 
     public void helpPromptLoggedOut() {
@@ -81,38 +84,25 @@ public class Repl {
         System.out.println("help - with possible commands");
     }
 
-    public String runLoggedInLoop() {
+    public String runLoggedInLoop(String authToken) {
         Scanner scanner = new Scanner(System.in);
         String result = "";
         while ((!result.equals("logout")) && (!result.equals("quit"))) {
+            System.out.println();
             String line = scanner.nextLine();
             var tokens = line.toLowerCase().split(" ");
             var cmd = (tokens.length > 0) ? tokens[0] : "help";
             var params = Arrays.copyOfRange(tokens, 1, tokens.length);
             try {
-                if (line.equals("help")) {
-                    helpPromptLoggedIn();
-                }
-                else if (line.equals("create")) {
-                    System.out.println("to be imp");
-                }
-                else if (line.equals("list")) {
-                    System.out.println("to be imp");
-                }
-                else if (line.equals("join")) {
-                    System.out.println("to be imp");
-                }
-                else if (line.equals("observe")) {
-                    System.out.println("to be imp");
-                }
-                else if (line.equals("logout")) {
-                    result = "logout";
-                }
-                else if (line.equals("quit")) {
-                    result = "quit";
-                }
-                else {
-                    System.out.println("invalid input, try again.");
+                switch (cmd) {
+                    case "help" -> helpPromptLoggedIn();
+                    case "create" -> result = create(params, authToken);
+                    case "list" -> System.out.println("to be imp");
+                    case "join" -> System.out.println("to be imp");
+                    case "observe" -> System.out.println("to be imp");
+                    case "logout" -> result = "logout";
+                    case "quit" -> result = "quit";
+                    default -> System.out.println("invalid input, try again.");
                 }
             } catch (Throwable e) {
                 System.out.print(e.getMessage());

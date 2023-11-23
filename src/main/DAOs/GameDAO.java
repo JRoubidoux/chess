@@ -22,13 +22,11 @@ public class GameDAO {
      * @param game An existing game that hasn't been put into the DB.
      * @throws DataAccessException If an error occurs trying to insert a game.
      */
-    public void insertNewGame(Game game) throws DataAccessException {
-        if (!gameInDB(game.getGameID())) {
-            db.writeGame(game);
-        }
-        else {
-            throw new DataAccessException("A game with this ID already exists.");
-        }
+    public Integer insertNewGame(Game game) throws DataAccessException {
+        //if (!gameInDB(game.getGameID())) {
+        return db.writeGame(game);
+        //}
+        //else {throw new DataAccessException("A game with this ID already exists.");}
     }
 
     /**

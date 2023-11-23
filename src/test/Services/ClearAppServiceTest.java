@@ -20,7 +20,6 @@ class ClearAppServiceTest {
         game.setWhiteUsername("jack");
         game.setBlackUsername("jill");
         game.setGame(new ChessGameImp());
-        game.setGameID(82);
 
         try {
             gameDao.insertNewGame(game);
@@ -29,7 +28,7 @@ class ClearAppServiceTest {
             System.out.println("Server error.");
         }
 
-        assertTrue(gameDao.gameInDB(82), "No game was written into the DB.");
+        assertTrue(gameDao.gameInDB(1), "No game was written into the DB.");
 
         var clearReq = new ClearAppServiceReq();
         var clearService = new ClearAppService();

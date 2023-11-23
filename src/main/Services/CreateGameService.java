@@ -13,11 +13,9 @@ import dataAccess.DataAccessException;
  */
 public class CreateGameService {
 
-    private static int gameIDCounter = 1;
+    //private static int gameIDCounter = 1;
 
-    public void resetGameCounter() {
-        gameIDCounter = 1;
-    }
+    //public void resetGameCounter() {gameIDCounter = 1;}
     /**
      * Creates a new game.
      *
@@ -39,9 +37,9 @@ public class CreateGameService {
                 throw new DataAccessException("bad request");
             }
             game.setGameName(request.getGameName());
-            game.setGameID(gameIDCounter);
+            //game.setGameID(gameIDCounter);
             game.setGame(new ChessGameImp());
-            gameDao.insertNewGame(game);
+            var gameIDCounter = gameDao.insertNewGame(game);
             var response = new CreateGameServiceRes();
             response.setGameID(gameIDCounter);
             response.setMessage("success");

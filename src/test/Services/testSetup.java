@@ -67,7 +67,7 @@ public class testSetup {
             user.clearUsers();
 
             var reset = new CreateGameService();
-            reset.resetGameCounter();
+            //reset.resetGameCounter();
         }
         catch (DataAccessException e) {
             System.out.println("server failure");
