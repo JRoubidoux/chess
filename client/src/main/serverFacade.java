@@ -84,6 +84,29 @@ public class serverFacade {
         return response;
     }
 
+    public void clear() {
+        var path = "/db";
+        String method = "DELETE";
+
+        var jsonObject = makeRequest(false, null, path, method, false, null);
+
+        if (jsonObject.isJsonNull()) {
+            System.out.println("Other error. Try again. \n");
+        }
+        else {
+            var status = jsonObject.get("status").getAsInt();
+            if (status == 200) {
+                System.out.print("DB is cleared.\n");
+            }
+            else if (status == 401){
+                System.out.println("Unauthorized. Try again. \n");
+            }
+            else {
+                System.out.println("Other error. Try again. \n");
+            }
+        }
+    }
+
     public String login(String[] params) {
         var path = "/session";
         String method = "POST";
@@ -107,7 +130,7 @@ public class serverFacade {
             if (status == 200) {
                 var username = jsonObject.get("username").getAsString();
                 var authToken = jsonObject.get("authToken").getAsString();
-                System.out.printf("Logged in as %s", username);
+                System.out.printf("Logged in as %s.\n", username);
                 return authToken;
             }
             else if (status == 401){
@@ -117,6 +140,32 @@ public class serverFacade {
             else {
                 System.out.println("Other error. Try again. \n");
                 return null;
+            }
+        }
+    }
+
+    public boolean logout(String authToken) {
+        var path = "/session";
+        String method = "DELETE";
+
+        var jsonObject = makeRequest(false, null, path, method, true, authToken);
+
+        if (jsonObject.isJsonNull()) {
+            return false;
+        }
+        else {
+            var status = jsonObject.get("status").getAsInt();
+            if (status == 200) {
+                System.out.print("Logged out.\n");
+                return true;
+            }
+            else if (status == 401){
+                System.out.println("Unauthorized. Try again. \n");
+                return false;
+            }
+            else {
+                System.out.println("Other error. Try again. \n");
+                return false;
             }
         }
     }
@@ -146,7 +195,7 @@ public class serverFacade {
             if (status == 200) {
                 var username = jsonObject.get("username").getAsString();
                 var authToken = jsonObject.get("authToken").getAsString();
-                System.out.printf("Logged in as %s", username);
+                System.out.printf("Logged in as %s. \n", username);
                 return authToken;
             }
             else if (status == 400){
@@ -182,7 +231,7 @@ public class serverFacade {
             var status = jsonObject.get("status").getAsInt();
             if (status == 200) {
                 var gameID = jsonObject.get("gameID").getAsString();
-                System.out.printf("Game: %s was created", mapOfParams.get("gameName"));
+                System.out.printf("Game: %s was created. Game ID: %s.\n", mapOfParams.get("gameName"), gameID);
                 return gameID;
             }
             else if (status == 400){
@@ -200,7 +249,7 @@ public class serverFacade {
         }
     }
 
-    public String list(String[] params, String authToken) {
+    public String list(String authToken) {
         var path = "/game";
         String method = "GET";
 
@@ -212,9 +261,27 @@ public class serverFacade {
         else {
             var status = jsonObject.get("status").getAsInt();
             if (status == 200) {
-                var gameID = jsonObject.get("gameID").getAsString();
-                System.out.printf("Game: %s was created", "gameName");
-                return gameID;
+                var games = (JsonArray) jsonObject.get("games");
+                System.out.println("Current games: ");
+                for (JsonElement jsonE: games) {
+                    var jsonOb = jsonE.getAsJsonObject();
+                    String gameName = jsonOb.get("gameName").getAsString();
+                    String gameID = jsonOb.get("gameID").getAsString();
+                    String whiteU = "null";
+                    String blackU = "null";
+                    if (jsonOb.has("whiteUsername")) {
+                        whiteU = jsonOb.get("whiteUsername").getAsString();
+                    }
+                    if (jsonOb.has("blackUsername")) {
+                        blackU = jsonOb.get("blackUsername").getAsString();
+                    }
+                    System.out.printf("GameName: %s.\n", gameName);
+                    System.out.printf("GameID: %s.\n", gameID);
+                    System.out.printf("White Username: %s.\n", whiteU);
+                    System.out.printf("Black Username: %s.\n", blackU);
+                    System.out.println();
+                }
+                return "";
             }
             else if (status == 400){
                 System.out.println("Bad request. Try again. \n");
@@ -227,6 +294,47 @@ public class serverFacade {
             else {
                 System.out.println("Other error. Try again. \n");
                 return null;
+            }
+        }
+    }
+
+    public boolean joinOrObserve(String[] params, String authToken) {
+        var path = "/game";
+        String method = "PUT";
+
+        var mapOfParams = new HashMap<String, Object>();
+        for (int i = 0; i < params.length; i++) {
+            if (i == 0) {
+                mapOfParams.put("gameID", Integer.parseInt(params[i]));
+            }
+            else {
+                mapOfParams.put("playerColor", params[i].toUpperCase());
+            }
+        }
+
+        var jsonObject = makeRequest(true, mapOfParams, path, method, true, authToken);
+
+        if (jsonObject == null) {
+            System.out.println("Other error. Try again. \n");
+            return false;
+        }
+        else {
+            var status = jsonObject.get("status").getAsInt();
+            if (status == 200) {
+                System.out.println("Successfully joined game.");
+                return true;
+            }
+            else if (status == 400){
+                System.out.println("Bad request. Try again. \n");
+                return false;
+            }
+            else if (status == 401) {
+                System.out.println("Unauthorized. Try again. \n");
+                return false;
+            }
+            else {
+                System.out.println("Other error. Try again. \n");
+                return false;
             }
         }
     }
