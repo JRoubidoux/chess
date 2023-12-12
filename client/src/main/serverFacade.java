@@ -1,5 +1,7 @@
 import com.google.gson.Gson;
 import com.google.gson.*;
+import webSocketMessages.userCommands.JoinPlayerCommand;
+import webSocketMessages.userCommands.UserGameCommand;
 
 import java.io.*;
 import java.net.*;
@@ -338,6 +340,30 @@ public class serverFacade {
             }
         }
     }
+
+
+    public void WSCommunicater() {
+
+    }
+//    public String updateGame() {
+//        try {
+//            var ws = new WSClient("ws://localhost:8080/connect");
+////            ws.send(new JoinPlayerCommand("authToken"));
+//            var tempV = new JoinPlayerCommand("12345");
+//            var hMap = new HashMap<String, String>();
+//            hMap.put("authToken", tempV.getAuthString());
+//            hMap.put("commandType", "JOIN_PLAYER");
+//            Gson gson = new Gson();
+//            var jsonFormat = gson.toJson(tempV);
+//            ws.send(jsonFormat);
+//            return "";
+//        }
+//        catch (Exception e) {
+//            return e.toString();
+//        }
+//
+//
+//    }
 }
 
 

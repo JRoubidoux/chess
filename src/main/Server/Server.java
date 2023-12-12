@@ -1,16 +1,13 @@
 package Server;
 import Handlers.*;
-import com.google.gson.Gson;
-import dataAccess.DataAccessException;
+import org.eclipse.jetty.websocket.api.annotations.WebSocket;
 import spark.Request;
 import spark.Response;
 import spark.Spark;
 
-import java.util.ArrayList;
-import java.util.Map;
-
+@WebSocket
 public class Server {
-
+    private final WebSocketHandler webSocketHandler = new WebSocketHandler();
 
     public static void main(String[] args) {
         new Server().run();
@@ -19,7 +16,7 @@ public class Server {
     private void run() {
         // Specify the port you want the server to listen on
         Spark.port(8080);
-
+        Spark.webSocket("/connect", webSocketHandler);
         // Register a directory for hosting static files
         Spark.externalStaticFileLocation("src/main/web");
 
@@ -31,6 +28,8 @@ public class Server {
         Spark.get("/game", this::listGames);
         Spark.post("/game", this::createGame);
         Spark.put("/game", this::joinGame);
+
+
 
     }
 
@@ -68,4 +67,5 @@ public class Server {
         var handle = new logoutHand();
         return handle.handleLogout(req, res);
     }
+
 }

@@ -75,7 +75,7 @@ public class Repl {
     public void joinOrObserve(String[] params, String authToken) {
         var joinOrObservingGame = serverConn.joinOrObserve(params, authToken);
         if (joinOrObservingGame) {
-            joinedOrObservedGame();
+            joinedOrObservedGame(params, authToken);
         }
     }
 
@@ -134,65 +134,118 @@ public class Repl {
         return result;
     }
 
-    public void joinedOrObservedGame() {
-        var game = new Game();
-        game.setGame(new ChessGameImp());
-        var chessGame = game.getGame();
-        var chessBoard = (ChessBoardImp) chessGame.getBoard();
-        chessBoard.resetBoard();
-        System.out.print(SET_BG_COLOR_LIGHT_GREY);
-        System.out.print(SET_TEXT_COLOR_BLACK);
-        System.out.print("    h  g  f  e  d  c  b  a    ");
-        System.out.print(SET_BG_COLOR_BLACK);
-        System.out.print("\n");
-
-        for (int i = 0; i < 8; i++) {
-            System.out.print(SET_BG_COLOR_LIGHT_GREY);
-            System.out.printf(" %d ", i+1);
-            for (int j = 0; j < 8; j++) {
-                var pos = new ChessPositionImp(i, j);
-                setChessboardColor(i+j);
-                printPiece(chessBoard, pos);
-            }
-            System.out.print(SET_BG_COLOR_LIGHT_GREY);
-            System.out.print(SET_TEXT_COLOR_BLACK);
-            System.out.printf(" %d ", i+1);
-            System.out.print(SET_BG_COLOR_BLACK);
-            System.out.print("\n");
+    public void joinedOrObservedGame(String[] params, String authToken) {
+        var gameID = Integer.parseInt(params[0]);
+        String playerColor = null;
+        if (params.length == 2) {
+            playerColor = params[1];
         }
-        System.out.print(SET_BG_COLOR_LIGHT_GREY);
-        System.out.print(SET_TEXT_COLOR_BLACK);
-        System.out.print("    h  g  f  e  d  c  b  a    ");
-        System.out.print(SET_BG_COLOR_BLACK);
-        System.out.print("\n\n");
 
-
-        System.out.print(SET_BG_COLOR_LIGHT_GREY);
-        System.out.print(SET_TEXT_COLOR_BLACK);
-        System.out.print("    a  b  c  d  e  f  g  h    ");
-        System.out.print(SET_BG_COLOR_BLACK);
-        System.out.print("\n");
-
-        for (int i = 7; i >= 0; i--) {
-            System.out.print(SET_BG_COLOR_LIGHT_GREY);
-            System.out.printf(" %d ", i+1);
-            for (int j = 7; j >= 0; j--) {
-                var pos = new ChessPositionImp(i, j);
-                setChessboardColor(i+j);
-                printPiece(chessBoard, pos);
-            }
-            System.out.print(SET_BG_COLOR_LIGHT_GREY);
-            System.out.print(SET_TEXT_COLOR_BLACK);
-            System.out.printf(" %d ", i+1);
-            System.out.print(SET_BG_COLOR_BLACK);
-            System.out.print("\n");
+        if (playerColor != null) {
+            runJoinedLoop(gameID, authToken, playerColor);
+        } else {
+            // observe
         }
-        System.out.print(SET_BG_COLOR_LIGHT_GREY);
-        System.out.print(SET_TEXT_COLOR_BLACK);
-        System.out.print("    a  b  c  d  e  f  g  h    ");
-        System.out.print("\u001b" + "[48;49;" + "15m");
-        System.out.print(SET_TEXT_COLOR_WHITE);
     }
+
+    public void runJoinedLoop(int gameID, String authToken, String playerColor) {
+        // print chess board
+        // don't allow to make move until other player joined.
+        // once have two players, let white go first.
+
+        Scanner scanner = new Scanner(System.in);
+        String userInput = "";
+        while (!userInput.equals("leave")) {
+            System.out.println();
+            userInput = scanner.nextLine().toLowerCase();
+            switch (userInput) {
+                case "help" -> printHelpJoined();
+                case "redraw chess board" -> ;
+                case "leave" -> ;
+                case "make move" -> ;
+                case "resign" -> ;
+                case "highlight legal moves" -> ;
+            }
+        }
+    }
+
+    public void printHelpJoined() {
+        System.out.println("help");
+        System.out.println("redraw chess board");
+        System.out.println("leave");
+        System.out.println("make move");
+        System.out.println("resign");
+        System.out.println("highlight legal moves");
+    }
+
+
+
+
+
+
+
+
+
+
+//        serverConn.updateGame();
+//
+//        var game = new Game();
+//        game.setGame(new ChessGameImp());
+//        var chessGame = game.getGame();
+//        var chessBoard = (ChessBoardImp) chessGame.getBoard();
+//        chessBoard.resetBoard();
+//        System.out.print(SET_BG_COLOR_LIGHT_GREY);
+//        System.out.print(SET_TEXT_COLOR_BLACK);
+//        System.out.print("    h  g  f  e  d  c  b  a    ");
+//        System.out.print(SET_BG_COLOR_BLACK);
+//        System.out.print("\n");
+//
+//        for (int i = 0; i < 8; i++) {
+//            System.out.print(SET_BG_COLOR_LIGHT_GREY);
+//            System.out.printf(" %d ", i+1);
+//            for (int j = 0; j < 8; j++) {
+//                var pos = new ChessPositionImp(i, j);
+//                setChessboardColor(i+j);
+//                printPiece(chessBoard, pos);
+//            }
+//            System.out.print(SET_BG_COLOR_LIGHT_GREY);
+//            System.out.print(SET_TEXT_COLOR_BLACK);
+//            System.out.printf(" %d ", i+1);
+//            System.out.print(SET_BG_COLOR_BLACK);
+//            System.out.print("\n");
+//        }
+//        System.out.print(SET_BG_COLOR_LIGHT_GREY);
+//        System.out.print(SET_TEXT_COLOR_BLACK);
+//        System.out.print("    h  g  f  e  d  c  b  a    ");
+//        System.out.print(SET_BG_COLOR_BLACK);
+//        System.out.print("\n\n");
+//
+//
+//        System.out.print(SET_BG_COLOR_LIGHT_GREY);
+//        System.out.print(SET_TEXT_COLOR_BLACK);
+//        System.out.print("    a  b  c  d  e  f  g  h    ");
+//        System.out.print(SET_BG_COLOR_BLACK);
+//        System.out.print("\n");
+//
+//        for (int i = 7; i >= 0; i--) {
+//            System.out.print(SET_BG_COLOR_LIGHT_GREY);
+//            System.out.printf(" %d ", i+1);
+//            for (int j = 7; j >= 0; j--) {
+//                var pos = new ChessPositionImp(i, j);
+//                setChessboardColor(i+j);
+//                printPiece(chessBoard, pos);
+//            }
+//            System.out.print(SET_BG_COLOR_LIGHT_GREY);
+//            System.out.print(SET_TEXT_COLOR_BLACK);
+//            System.out.printf(" %d ", i+1);
+//            System.out.print(SET_BG_COLOR_BLACK);
+//            System.out.print("\n");
+//        }
+//        System.out.print(SET_BG_COLOR_LIGHT_GREY);
+//        System.out.print(SET_TEXT_COLOR_BLACK);
+//        System.out.print("    a  b  c  d  e  f  g  h    ");
+//        System.out.print("\u001b" + "[48;49;" + "15m");
+//        System.out.print(SET_TEXT_COLOR_WHITE);
 
     public void setChessboardColor(int number) {
         if (((number) % 2) == 0) {
