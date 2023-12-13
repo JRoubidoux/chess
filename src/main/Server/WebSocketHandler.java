@@ -40,7 +40,7 @@ public class WebSocketHandler {
             case JOIN_PLAYER -> joinPlayer(new Gson().fromJson(message, JoinPlayerCommand.class), session);
             case JOIN_OBSERVER -> joinObserver(new Gson().fromJson(message, JoinObserverCommand.class), session);
             case MAKE_MOVE -> makeMove(jsonToMakeMove(message), session);
-            case RESIGN ->
+            case RESIGN -> resign(new Gson().fromJson(message, ResignCommand.class));
             // case LEAVE ->
         }
     }
