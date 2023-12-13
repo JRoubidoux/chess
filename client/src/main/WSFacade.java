@@ -90,9 +90,9 @@ public class WSFacade extends Endpoint {
     public void onOpen(Session session, EndpointConfig endpointConfig) {
     }
 
-    public void makeMove(ChessMove move, int gameID, String authToken, String teamColor) throws ResponseException{
+    public void makeMove(ChessMove move, int gameID, String authToken) throws ResponseException{
         try {
-            var makeMoveC = new MakeMoveCommand(gameID, authToken, move, teamColor);
+            var makeMoveC = new MakeMoveCommand(gameID, authToken, move);
             this.session.getBasicRemote().sendText(new Gson().toJson(makeMoveC));
         }
         catch (IOException ex) {

@@ -253,7 +253,7 @@ public class Repl {
             var endPos = getPosFromInput(tokens[1]);
 
             var chessMove = new ChessMoveImp(startPos, endPos);
-            wsConn.makeMove(chessMove, gameID, authToken, teamColor);
+            wsConn.makeMove(chessMove, gameID, authToken);
         }
         catch (ResponseException e) {
             var temp = e;

@@ -83,18 +83,19 @@ public class WebSocketHandler {
     private void makeMove(MakeMoveCommand makeMoveC, Session session) throws IOException {
         var gameID = makeMoveC.getGameID();
         var authToken = makeMoveC.getAuthString();
-        ChessGame.TeamColor teamColor = null;
-        if (makeMoveC.getTeamColor() != null) {
-            if (makeMoveC.getTeamColor().equalsIgnoreCase("black")) {
-                teamColor = ChessGame.TeamColor.BLACK;
-            }
-            else {
-                teamColor = ChessGame.TeamColor.WHITE;
-            }
-        }
         var chessMove = makeMoveC.getMove();
+
         try {
             var currGame = gameDAO.findGame(gameID);
+            var username = authDAO.retrieveAuthToken(authToken).getUsername();
+            ChessGame.TeamColor teamColor = null;
+            if (currGame.getWhiteUsername().equals(username)) {
+                teamColor = ChessGame.TeamColor.WHITE;
+            }
+            if (currGame.getBlackUsername().equals(username)) {
+                teamColor = ChessGame.TeamColor.BLACK;
+            }
+
             String errorMessage = null;
             var makeTheMove = true;
 
@@ -114,7 +115,7 @@ public class WebSocketHandler {
             }
 
             if (makeTheMove) {
-                var username = authDAO.retrieveAuthToken(authToken).getUsername();
+
                 var messageForOthers = String.format("%s moved from %s to %s", username, chessMove.getStartPosition().toString(), chessMove.getEndPosition().toString());
                 var notification = new Notification(ServerMessage.ServerMessageType.NOTIFICATION, messageForOthers);
 
@@ -148,9 +149,7 @@ public class WebSocketHandler {
 
         for (var c : connections.connections.get((Integer) gameID).values()) {
             if (c.session.isOpen()) {
-                if (!c.authToken.equals(authToken)) {
                     c.send(new Gson().toJson(loadGame));
-                }
             }
         }
     }
