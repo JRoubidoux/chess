@@ -200,7 +200,7 @@ class GameDAOTest {
 
         try {
             var game1 = getClassicGame("white", "black", "gameName", 1);
-            gameDAO.insertNewGame(game1);
+            var ID = gameDAO.insertNewGame(game1);
             gameDAO.RemoveGame(1);
             var game = gameDAO.findGame(1);
             assertNull(game);

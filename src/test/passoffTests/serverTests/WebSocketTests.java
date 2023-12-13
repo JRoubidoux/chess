@@ -277,7 +277,7 @@ public class WebSocketTests {
         Future<List<TestModels.TestMessage>> alfredResult =
                 alfredExecutor.submit(new GetServerMessages(1, alfredClient, readyLatch, waitTime));
         try{
-            alfredMessages = alfredResult.get(waitTime * 200, TimeUnit.MILLISECONDS);
+            alfredMessages = alfredResult.get(waitTime * 2, TimeUnit.MILLISECONDS);
         } catch (TimeoutException ignore) {}
 
         //check received messages
@@ -310,7 +310,7 @@ public class WebSocketTests {
         Future<List<TestModels.TestMessage>> jamesResult =
                 jamesExecutor.submit(new GetServerMessages(1, jamesClient, readyLatch, waitTime));
         try{
-            jamesMessages = jamesResult.get(waitTime * 200, TimeUnit.MILLISECONDS);
+            jamesMessages = jamesResult.get(waitTime * 2, TimeUnit.MILLISECONDS);
         } catch (TimeoutException ignore) {}
 
         //check received messages
@@ -344,7 +344,7 @@ public class WebSocketTests {
                 bobExecutor.submit(new GetServerMessages(1, bobClient, readyLatch, waitTime));
 
         try {
-            bobMessages = bobResult.get(waitTime * 200, TimeUnit.MILLISECONDS);
+            bobMessages = bobResult.get(waitTime * 2, TimeUnit.MILLISECONDS);
         } catch (TimeoutException ignore) {}
 
         //check received message
@@ -698,7 +698,7 @@ public class WebSocketTests {
 
         //wait to get all messages
         try {
-            bobMessages = bobResult.get(waitTime * 400, TimeUnit.MILLISECONDS);
+            bobMessages = bobResult.get(waitTime * 4, TimeUnit.MILLISECONDS);
             jamesMessages = jamesResult.get(waitTime * 4, TimeUnit.MILLISECONDS);
             alfredMessages = alfredResult.get(waitTime * 4, TimeUnit.MILLISECONDS);
 
@@ -1246,7 +1246,7 @@ public class WebSocketTests {
         jamesResult = jamesExecutor.submit(new GetServerMessages(1, jamesClient, readyLatch));
         bobResult = bobExecutor.submit(new GetServerMessages(1, bobClient, readyLatch));
         alfredResult = alfredExecutor.submit(new GetServerMessages(1, alfredClient, readyLatch));
-        jamesResult.get(300 * waitTime, TimeUnit.MILLISECONDS);
+        jamesResult.get(3 * waitTime, TimeUnit.MILLISECONDS);
         bobResult.get(3 * waitTime, TimeUnit.MILLISECONDS);
         alfredResult.get(3 * waitTime, TimeUnit.MILLISECONDS);
 

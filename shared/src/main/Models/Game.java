@@ -12,6 +12,15 @@ public class Game {
     private String blackUsername;
     private String gameName;
     private ChessGameImp game;
+    private String resigned = null;
+
+    public String getResigned() {
+        return resigned;
+    }
+
+    public void setResigned(String resigned) {
+        this.resigned = resigned;
+    }
 
     public int getGameID() {
         return gameID;

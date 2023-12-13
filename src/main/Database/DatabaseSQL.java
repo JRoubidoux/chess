@@ -37,17 +37,18 @@ public class DatabaseSQL implements Database {
         var json = turnToJson((ChessBoardImp) currBoard);
         var whiteU = game.getWhiteUsername();
         var blackU = game.getBlackUsername();
+        var resigned = game.getResigned();
 
         try (var conn = db.getConnection()) {
             conn.setCatalog("chess");
 
-            try (var preparedStatement = conn.prepareStatement("INSERT INTO games (gameName, currentTurn, blackUser, whiteUser, gameState) VALUES(?, ?, ?, ?, ?)", Statement.RETURN_GENERATED_KEYS)) {
+            try (var preparedStatement = conn.prepareStatement("INSERT INTO games (gameName, currentTurn, blackUser, whiteUser, gameState, resigned) VALUES(?, ?, ?, ?, ?, ?)", Statement.RETURN_GENERATED_KEYS)) {
                 preparedStatement.setString(1, gameName);
-                //preparedStatement.setInt(2, gameID);
                 preparedStatement.setString(2, currTurn);
                 preparedStatement.setString(3, blackU);
                 preparedStatement.setString(4, whiteU);
                 preparedStatement.setString(5, (String) json);
+                preparedStatement.setString(6, resigned);
 
                 int affectedRows = preparedStatement.executeUpdate();
                 if (affectedRows > 0) {
@@ -119,7 +120,7 @@ public class DatabaseSQL implements Database {
     public Game readGame(Integer gameID) {
         try (var conn = db.getConnection()) {
             conn.setCatalog("chess");
-            try (var preparedStatement = conn.prepareStatement("SELECT gameName, whiteUser, blackUser, currentTurn, gameState FROM games WHERE gameID=?")) {
+            try (var preparedStatement = conn.prepareStatement("SELECT gameName, whiteUser, blackUser, currentTurn, gameState, resigned FROM games WHERE gameID=?")) {
                 preparedStatement.setString(1, String.valueOf(gameID));
                 try (var rs = preparedStatement.executeQuery()) {
 
@@ -133,6 +134,7 @@ public class DatabaseSQL implements Database {
                         var blackUser = rs.getString("blackUser");
                         var currentTurn = rs.getString("currentTurn");
                         var gameState = rs.getString("gameState");
+                        var resigned = rs.getString("resigned");
                         ChessGame.TeamColor color = null;
                         if (currentTurn.equals("WHITE")) {
                             color = ChessGame.TeamColor.WHITE;
@@ -150,6 +152,7 @@ public class DatabaseSQL implements Database {
                         gameModel.setWhiteUsername(whiteUser);
                         gameModel.setBlackUsername(blackUser);
                         gameModel.setGame(gameImp);
+                        gameModel.setResigned(resigned);
                         db.closeConnection(conn);
                         return gameModel;
                     }
@@ -269,15 +272,18 @@ public class DatabaseSQL implements Database {
         var json = turnToJson((ChessBoardImp) currBoard);
         var whiteU = game.getWhiteUsername();
         var blackU = game.getBlackUsername();
+        var resigned = game.getResigned();
 
         try (var conn = db.getConnection()) {
             conn.setCatalog("chess");
-            try (var preparedStatement = conn.prepareStatement("UPDATE games SET whiteUser=?, blackUser=?, gameState=?, currentTurn=?  WHERE gameID=?")) {
+            try (var preparedStatement = conn.prepareStatement("UPDATE games SET whiteUser=?, blackUser=?, gameState=?, currentTurn=?, resigned=?  WHERE gameID=?")) {
                 preparedStatement.setString(1, whiteU);
                 preparedStatement.setString(2, blackU);
                 preparedStatement.setString(3, (String) json);
                 preparedStatement.setString(4, currTurn);
-                preparedStatement.setInt(5, gameID);
+                preparedStatement.setString(5, resigned);
+                preparedStatement.setInt(6, gameID);
+
 
                 preparedStatement.executeUpdate();
             }
@@ -445,7 +451,8 @@ public class DatabaseSQL implements Database {
                 whiteUser VARCHAR(255),
                 blackUser VARCHAR(255),
                 currentTurn VARCHAR(255),
-                gameState LONGTEXT NOT NULL
+                gameState LONGTEXT NOT NULL,
+                resigned VARCHAR(255)
             )""";
 
 

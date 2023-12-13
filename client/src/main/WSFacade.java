@@ -17,7 +17,10 @@ import javax.websocket.*;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.Objects;
 
 import static ui.EscapeSequences.*;
 
@@ -54,7 +57,7 @@ public class WSFacade extends Endpoint {
                     ServerMessage notification = new Gson().fromJson(message, ServerMessage.class);
                     if (notification.getServerMessageType() == ServerMessage.ServerMessageType.LOAD_GAME) {
                         loadGame(new Gson().fromJson(message, LoadGame.class));
-                        drawChessboard();
+                        drawChessboard(new ArrayList<ChessMove>());
                     }
                     else if (notification.getServerMessageType() == ServerMessage.ServerMessageType.NOTIFICATION) {
                         var fromJson = new Gson().fromJson(message, Notification.class);
@@ -76,6 +79,8 @@ public class WSFacade extends Endpoint {
         return this.game;
     }
 
+    public boolean getGameStatus() {return this.gameInPlay;}
+
     public void loadGame(LoadGame loadGame) {
         this.game = readGame(loadGame);
     }
@@ -93,6 +98,30 @@ public class WSFacade extends Endpoint {
     public void onOpen(Session session, EndpointConfig endpointConfig) {
     }
 
+    public void leaveGame(int gameID, String authToken, String teamColor) throws ResponseException {
+        var leaveComm = new LeaveCommand(gameID, authToken, teamColor);
+        try {
+            this.session.getBasicRemote().sendText(new Gson().toJson(leaveComm));
+        }
+        catch (IOException e) {
+            throw new ResponseException(500, e.getMessage());
+        }
+    }
+
+    public void resignGame(int gameID, String authToken) throws ResponseException{
+        var resignComm = new ResignCommand(gameID, authToken);
+        try {
+            if (this.getGameStatus()) {
+                this.session.getBasicRemote().sendText(new Gson().toJson(resignComm));
+            }
+            else {
+                System.out.println("Game is over.");
+            }
+        }
+        catch (IOException e) {
+            throw new ResponseException(500, e.getMessage());
+        }
+    }
     public void makeMove(ChessMove move, int gameID, String authToken) throws ResponseException{
         if (gameInPlay) {
             try {
@@ -272,12 +301,12 @@ public class WSFacade extends Endpoint {
         }
     }
 
-    public void drawChessboard() {
+    public void drawChessboard(Collection<ChessMove> moves) {
         var game = this.getGame();
         var chessGame = game.getGame();
         var chessBoard = (ChessBoardImp) chessGame.getBoard();
 
-        if ((this.userColor == null) || (this.userColor == ChessGame.TeamColor.WHITE)) {
+        if (this.userColor == ChessGame.TeamColor.BLACK) {
             System.out.print(SET_BG_COLOR_LIGHT_GREY);
             System.out.print(SET_TEXT_COLOR_BLACK);
             System.out.print("    h  g  f  e  d  c  b  a    ");
@@ -287,9 +316,9 @@ public class WSFacade extends Endpoint {
             for (int i = 0; i < 8; i++) {
                 System.out.print(SET_BG_COLOR_LIGHT_GREY);
                 System.out.printf(" %d ", i + 1);
-                for (int j = 0; j < 8; j++) {
+                for (int j = 7; j >= 0; j--) {
                     var pos = new ChessPositionImp(i, j);
-                    setChessboardColor(i + j);
+                    setChessboardColor(i, j, moves);
                     printPiece(chessBoard, pos);
                 }
                 System.out.print(SET_BG_COLOR_LIGHT_GREY);
@@ -315,9 +344,9 @@ public class WSFacade extends Endpoint {
             for (int i = 7; i >= 0; i--) {
                 System.out.print(SET_BG_COLOR_LIGHT_GREY);
                 System.out.printf(" %d ", i + 1);
-                for (int j = 7; j >= 0; j--) {
+                for (int j = 0; j < 8; j++) {
                     var pos = new ChessPositionImp(i, j);
-                    setChessboardColor(i + j);
+                    setChessboardColor(i, j, moves);
                     printPiece(chessBoard, pos);
                 }
                 System.out.print(SET_BG_COLOR_LIGHT_GREY);
@@ -335,12 +364,44 @@ public class WSFacade extends Endpoint {
         }
     }
 
-    public void setChessboardColor(int number) {
-        if (((number) % 2) == 0) {
-            System.out.print(SET_BG_COLOR_WHITE);
+    public void setChessboardColor(int n1, int n2, Collection<ChessMove> moves) {
+        if (moves.isEmpty()) {
+            if (((n1 + n2) % 2) == 0) {
+                System.out.print(SET_BG_COLOR_WHITE);
+            } else {
+                System.out.print(SET_BG_COLOR_BLACK);
+            }
         }
         else {
-            System.out.print(SET_BG_COLOR_BLACK);
+            var movesArray = moves.toArray();
+            var startPos = ((ChessMoveImp) movesArray[0]).getStartPosition();
+            var chessPos = new ChessPositionImp(n1, n2);
+            if (Objects.equals(startPos, chessPos)) {
+                System.out.print(SET_BG_COLOR_YELLOW);
+            }
+            else {
+                var highlightedMove = false;
+                for (var move : movesArray) {
+                    var endPos = ((ChessMoveImp) move).getEndPosition();
+                    if (Objects.equals(chessPos, endPos)) {
+                        highlightedMove = true;
+                    }
+                }
+                if (highlightedMove) {
+                    if (((n1 + n2) % 2) == 0) {
+                        System.out.print(SET_BG_COLOR_GREEN);
+                    } else {
+                        System.out.print(SET_BG_COLOR_DARK_GREEN);
+                    }
+                }
+                else {
+                    if (((n1 + n2) % 2) == 0) {
+                        System.out.print(SET_BG_COLOR_WHITE);
+                    } else {
+                        System.out.print(SET_BG_COLOR_BLACK);
+                    }
+                }
+            }
         }
     }
 

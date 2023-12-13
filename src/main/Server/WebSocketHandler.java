@@ -13,6 +13,7 @@ import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonToken;
 import com.google.gson.stream.JsonWriter;
 import dataAccess.DataAccessException;
+import org.eclipse.jetty.util.IO;
 import org.eclipse.jetty.websocket.api.annotations.OnWebSocketMessage;
 import org.eclipse.jetty.websocket.api.annotations.WebSocket;
 import webSocketMessages.serverMessages.Error;
@@ -41,23 +42,45 @@ public class WebSocketHandler {
             case JOIN_OBSERVER -> joinObserver(new Gson().fromJson(message, JoinObserverCommand.class), session);
             case MAKE_MOVE -> makeMove(jsonToMakeMove(message), session);
             case RESIGN -> resign(new Gson().fromJson(message, ResignCommand.class));
-            // case LEAVE ->
+            case LEAVE -> leave(new Gson().fromJson(message, LeaveCommand.class));
         }
     }
 
-    private void leave(LeaveCommand command) {
+    private void leave(LeaveCommand command) throws IOException {
         var gameID = command.getGameID();
         var authToken = command.getAuthString();
 
-
         try {
             var username = authDAO.retrieveAuthToken(authToken).getUsername();
+            var currGame = gameDAO.findGame(gameID);
+            if (username.equals(currGame.getWhiteUsername())) {
+                currGame.setWhiteUsername(null);
+            }
+            if (username.equals(currGame.getBlackUsername())) {
+                currGame.setBlackUsername(null);
+            }
+            gameDAO.UpdateGame(currGame);
+            String msg = String.format("%s has left the game.", username);
+            var notification = new Notification(ServerMessage.ServerMessageType.NOTIFICATION, msg, false);
+            leaveResponse(gameID, authToken, notification);
+            connections.remove(gameID, authToken);
+
         }
         catch (DataAccessException e) {
             var temp = e;
         }
 
         connections.remove(gameID, authToken);
+    }
+
+    public void leaveResponse(int gameID, String authToken, Notification notification) throws IOException {
+        for (var c : connections.connections.get((Integer) gameID).values()) {
+            if (c.session.isOpen()) {
+                if (!c.authToken.equals(authToken)) {
+                    c.send(new Gson().toJson(notification));
+                }
+            }
+        }
     }
 
     private void resign(ResignCommand command) throws IOException {
@@ -67,12 +90,27 @@ public class WebSocketHandler {
         try {
             var currGame = gameDAO.findGame(gameID);
             var username = authDAO.retrieveAuthToken(authToken).getUsername();
+            var resigned = currGame.getResigned();
 
             String errorMessage = null;
             var commandComesFromObserver = false;
+            var resignedNull = true;
 
-            if ((!currGame.getWhiteUsername().equals(username)) && (!currGame.getBlackUsername().equals(username))) {
+            if (resigned == null) {
+                currGame.setResigned(username);
+                gameDAO.UpdateGame(currGame);
+            }
+            if (resigned != null) {
+                resignedNull = false;
+            }
+
+            if ((resignedNull) && (!currGame.getWhiteUsername().equals(username)) && (!currGame.getBlackUsername().equals(username))) {
                 errorMessage = "Observes aren't playing, thus can't resign.";
+                commandComesFromObserver = true;
+            }
+
+            if (!resignedNull) {
+                errorMessage = "Game already over. Other player already resigned.";
                 commandComesFromObserver = true;
             }
 
@@ -149,10 +187,19 @@ public class WebSocketHandler {
             var rootInCheckmate = false;
             var oppInCheckmate = false;
             var oppInCheck = false;
+            var isObserver = false;
+            var isResigned = false;
 
             if (teamColor == null) {
                 makeTheMove = false;
+                isObserver = true;
                 errorMessage = "Observer can't make move.";
+            }
+
+            if (currGame.getResigned() != null) {
+                makeTheMove = false;
+                isResigned = true;
+                errorMessage = "Game is over.";
             }
 
             if ((currGame.getGame().getTeamTurn() != teamColor) && (makeTheMove)) {
@@ -160,7 +207,7 @@ public class WebSocketHandler {
                 errorMessage = "Not your turn";
             }
 
-            if ((currGame.getGame().getTeamTurn() == teamColor) && (currGame.getGame().isInCheckmate(teamColor))) {
+            if ((makeTheMove) && (currGame.getGame().getTeamTurn() == teamColor) && (currGame.getGame().isInCheckmate(teamColor))) {
                 makeTheMove = false;
                 rootInCheckmate = true;
                 errorMessage = "Can't make move, you're in checkmate";
@@ -180,16 +227,16 @@ public class WebSocketHandler {
                 if (currGame.getGame().isInCheckmate(otherTeam)) {
                     oppInCheckmate = true;
                 }
-                if (currGame.getGame().isInCheck(otherTeam)) {
+                if ((!oppInCheckmate) && (currGame.getGame().isInCheck(otherTeam))) {
                     oppInCheck = true;
                 }
 
-                String messageForOthers = String.format("%s moved from %s to %s", username, chessMove.getStartPosition().toString(), chessMove.getEndPosition().toString());
+                String messageForOthers = String.format("%s moved.", username);
                 if (oppInCheckmate) {
-                    messageForOthers = messageForOthers + String.format(" and %s in is checkmate.", otherUser);
+                    messageForOthers = messageForOthers + String.format(" %s in is checkmate.", otherUser);
                 }
                 if (oppInCheck) {
-                    messageForOthers = messageForOthers + String.format(" and %s in is check.", otherUser);
+                    messageForOthers = messageForOthers + String.format(" %s in is check.", otherUser);
                 }
                 var notification = new Notification(ServerMessage.ServerMessageType.NOTIFICATION, messageForOthers, !oppInCheckmate);
 
@@ -198,7 +245,7 @@ public class WebSocketHandler {
 
             }
             else {
-                if (rootInCheckmate) {
+                if (rootInCheckmate || isResigned || isObserver) {
                     // send error to root
                     var errorResponse = new Error(ServerMessage.ServerMessageType.ERROR, errorMessage);
                     connections.connections.get(gameID).get(authToken).send(new Gson().toJson(errorResponse));

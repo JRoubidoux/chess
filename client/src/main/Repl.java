@@ -1,9 +1,10 @@
+import chess.ChessGame;
+import chess.ChessMove;
 import chess.ChessMoveImp;
 import chess.ChessPositionImp;
 import exception.ResponseException;
 
-import java.util.Arrays;
-import java.util.Scanner;
+import java.util.*;
 
 public class Repl {
 
@@ -163,11 +164,9 @@ public class Repl {
                 userInput = scanner.nextLine().toLowerCase();
                 switch (userInput) {
                     case "help" -> printHelpJoined();
-                    case "redraw chess board" -> drawChessBoard(wsConn);
-                    //case "leave" -> ;
-                    //                case "make move" -> ;
-                    //                case "resign" -> ;
-                    //                case "highlight legal moves" -> ;
+                    case "redraw chess board" -> drawChessBoard(wsConn, new ArrayList<ChessMove>());
+                    case "leave" -> leaveSess(gameID, authToken, null, wsConn);
+                    case "highlight legal moves" -> drawHighlights(wsConn);
                     default -> System.out.println("Invalid, try again.");
                 }
             }
@@ -191,12 +190,11 @@ public class Repl {
                 userInput = scanner.nextLine().toLowerCase();
                 switch (userInput) {
                     case "help" -> printHelpJoined();
-                    case "redraw chess board" -> drawChessBoard(wsConn);
+                    case "redraw chess board" -> drawChessBoard(wsConn, new ArrayList<ChessMove>());
                     case "make move" -> makeMove(gameID, authToken, playerColor, wsConn);
-                    //case "leave" -> ;
-                    //                case "make move" -> ;
-                    //                case "resign" -> ;
-                    //                case "highlight legal moves" -> ;
+                    case "leave" -> leaveSess(gameID, authToken, playerColor, wsConn);
+                    case "resign" -> resignGame(gameID, authToken, playerColor, wsConn);
+                    case "highlight legal moves" -> drawHighlights(wsConn);
                     default -> System.out.println("Invalid, try again.");
                 }
             }
@@ -215,45 +213,113 @@ public class Repl {
         System.out.println("highlight legal moves");
     }
 
+    public void leaveSess(int gameID, String authToken, String teamColor, WSFacade wsConn) throws ResponseException {
+        wsConn.leaveGame(gameID, authToken, teamColor);
+    }
 
-    public void drawChessBoard(WSFacade wsConn) {
-        wsConn.drawChessboard();
+    public void resignGame(int gameID, String authToken, String teamColor, WSFacade wsConn) throws ResponseException {
+        wsConn.resignGame(gameID, authToken);
+    }
+
+    public void drawChessBoard(WSFacade wsConn, Collection<ChessMove> moves) {
+        wsConn.drawChessboard(moves);
+    }
+
+    public void drawHighlights(WSFacade wsConn) {
+        var inValid = true;
+        String token = null;
+
+        while (inValid) {
+            inValid = false;
+
+            System.out.println("Enter position from (a1): ");
+            var scanner = new Scanner(System.in);
+            token = scanner.nextLine().toLowerCase();
+
+            if (token.length() != 2) {
+                inValid = true;
+                break;
+            }
+            if (!charIsCorrectLetter(token.charAt(0))) {
+                inValid = true;
+                break;
+            }
+            if (!charIsCorrectNumber(token.charAt(1))) {
+                inValid = true;
+                break;
+            }
+        }
+
+        var startPos = getPosFromInput(token);
+
+        var game = wsConn.getGame();
+        var validMoves = game.getGame().validMoves(startPos);
+
+        drawChessBoard(wsConn, validMoves);
+
     }
 
     public void makeMove(int gameID, String authToken, String teamColor, WSFacade wsConn) {
         try {
-            var inValid = true;
-            String[] tokens = new String[2];
+            if (wsConn.getGameStatus()) {
 
-            while (inValid) {
-                inValid = false;
+                ChessGame.TeamColor color = null;
+                if (Objects.equals(teamColor, "white")) {
+                    color = ChessGame.TeamColor.WHITE;
+                }
+                if (teamColor.equals("black")) {
+                    color = ChessGame.TeamColor.BLACK;
+                }
 
-                System.out.println("Enter position from (a1) then position to (a2): ");
-                var scanner = new Scanner(System.in);
-                var userInput = scanner.nextLine().toLowerCase();
-                tokens = userInput.split(" ");
+                while (true) {
+                    var inValid = true;
+                    String[] tokens = new String[2];
 
-                for (String token : tokens) {
-                    if (token.length() != 2) {
-                        inValid = true;
+                    while (inValid) {
+                        inValid = false;
+
+                        System.out.println("Enter position from (a1) then position to (a2): ");
+                        var scanner = new Scanner(System.in);
+                        var userInput = scanner.nextLine().toLowerCase();
+                        tokens = userInput.split(" ");
+
+                        for (String token : tokens) {
+                            if (token.length() != 2) {
+                                inValid = true;
+                                break;
+                            }
+                            if (!charIsCorrectLetter(token.charAt(0))) {
+                                inValid = true;
+                                break;
+                            }
+                            if (!charIsCorrectNumber(token.charAt(1))) {
+                                inValid = true;
+                                break;
+                            }
+                        }
+                    }
+
+                    var startPos = getPosFromInput(tokens[0]);
+                    var endPos = getPosFromInput(tokens[1]);
+
+                    var chessMove = new ChessMoveImp(startPos, endPos);
+                    var currGame = wsConn.getGame();
+
+                    if (currGame.getGame().getTeamTurn() != color) {
+                        System.out.println("Not your turn");
                         break;
                     }
-                    if (!charIsCorrectLetter(token.charAt(0))) {
-                        inValid = true;
+                    if (currGame.getGame().validMoves(chessMove.getStartPosition()).contains(chessMove)) {
+                        wsConn.makeMove(chessMove, gameID, authToken);
                         break;
-                    }
-                    if (!charIsCorrectNumber(token.charAt(1))) {
-                        inValid = true;
-                        break;
+                    } else {
+                        System.out.println("Not a valid move. Try again.");
                     }
                 }
             }
-
-            var startPos = getPosFromInput(tokens[0]);
-            var endPos = getPosFromInput(tokens[1]);
-
-            var chessMove = new ChessMoveImp(startPos, endPos);
-            wsConn.makeMove(chessMove, gameID, authToken);
+            else {
+                System.out.println("Game is over.");
+            }
         }
         catch (ResponseException e) {
             var temp = e;
@@ -276,10 +342,10 @@ public class Repl {
 
         for (int i = 0; i < 8; i++) {
             if (token.charAt(0) == letters.charAt(i)) {
-                row = i;
+                column = i;
             }
             if (token.charAt(1) == numbers.charAt(i)) {
-                column = i;
+                row = i;
             }
         }
 
