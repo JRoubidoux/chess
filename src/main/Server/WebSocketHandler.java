@@ -60,6 +60,42 @@ public class WebSocketHandler {
     }
 
     private void makeMove(MakeMoveCommand makeMoveC, Session session) throws IOException {
+        var gameID = makeMoveC.getGameID();
+        var authToken = makeMoveC.getAuthString();
+        ChessGame.TeamColor teamColor = null;
+        if (makeMoveC.getTeamColor() != null) {
+            if (makeMoveC.getTeamColor().equalsIgnoreCase("black")) {
+                teamColor = ChessGame.TeamColor.BLACK;
+            }
+            else {
+                teamColor = ChessGame.TeamColor.WHITE;
+            }
+        }
+        var chessMove = makeMoveC.getMove();
+        try {
+            var currGame = gameDAO.findGame(gameID);
+            String errorMessage = null;
+            var makeTheMove = true;
+
+            if (teamColor == null) {
+                makeTheMove = false;
+                errorMessage = "Observer can't make move.";
+            }
+
+            if ((currGame.getGame().getTeamTurn() != teamColor) && (makeTheMove)) {
+                makeTheMove = false;
+                errorMessage = "Not your turn";
+            }
+
+            if ((!currGame.getGame().validMoves(chessMove.getStartPosition()).contains(chessMove)) && (makeTheMove)) {
+                makeTheMove = false;
+                errorMessage = "Not a valid move.";
+            }
+
+        }
+        catch (DataAccessException e) {
+            var temp = e;
+        }
         
     }
 
