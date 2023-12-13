@@ -40,6 +40,7 @@ public class WebSocketHandler {
             case JOIN_PLAYER -> joinPlayer(new Gson().fromJson(message, JoinPlayerCommand.class), session);
             case JOIN_OBSERVER -> joinObserver(new Gson().fromJson(message, JoinObserverCommand.class), session);
             case MAKE_MOVE -> makeMove(jsonToMakeMove(message), session);
+            case RESIGN ->
             // case LEAVE ->
         }
     }
@@ -47,7 +48,6 @@ public class WebSocketHandler {
     private void leave(LeaveCommand command) {
         var gameID = command.getGameID();
         var authToken = command.getAuthString();
-        //var color = command.getColor();
 
 
         try {
@@ -58,6 +58,46 @@ public class WebSocketHandler {
         }
 
         connections.remove(gameID, authToken);
+    }
+
+    private void resign(ResignCommand command) throws IOException {
+        var authToken = command.getAuthString();
+        var gameID = command.getGameID();
+
+        try {
+            var currGame = gameDAO.findGame(gameID);
+            var username = authDAO.retrieveAuthToken(authToken).getUsername();
+
+            String errorMessage = null;
+            var commandComesFromObserver = false;
+
+            if ((!currGame.getWhiteUsername().equals(username)) && (!currGame.getBlackUsername().equals(username))) {
+                errorMessage = "Observes aren't playing, thus can't resign.";
+                commandComesFromObserver = true;
+            }
+
+            if (commandComesFromObserver) {
+                var errorResponse = new Error(ServerMessage.ServerMessageType.ERROR, errorMessage);
+                connections.connections.get(gameID).get(authToken).send(new Gson().toJson(errorResponse));
+            }
+            else {
+                String msg = String.format("%s resigns the game.", username);
+                var notification = new Notification(ServerMessage.ServerMessageType.NOTIFICATION, msg, false);
+                playerResignsRespone(notification, gameID);
+
+            }
+        }
+        catch (DataAccessException e) {
+            var temp = e;
+        }
+    }
+
+    private void playerResignsRespone(Notification notification, int gameID) throws IOException {
+        for (var c : connections.connections.get((Integer) gameID).values()) {
+            if (c.session.isOpen()) {
+                c.send(new Gson().toJson(notification));
+            }
+        }
     }
 
     public MakeMoveCommand jsonToMakeMove(String json) {
@@ -88,16 +128,27 @@ public class WebSocketHandler {
         try {
             var currGame = gameDAO.findGame(gameID);
             var username = authDAO.retrieveAuthToken(authToken).getUsername();
+
             ChessGame.TeamColor teamColor = null;
+            ChessGame.TeamColor otherTeam = null;
+            String otherUser = null;
+
             if (currGame.getWhiteUsername().equals(username)) {
                 teamColor = ChessGame.TeamColor.WHITE;
+                otherTeam = ChessGame.TeamColor.BLACK;
+                otherUser = currGame.getBlackUsername();
             }
             if (currGame.getBlackUsername().equals(username)) {
                 teamColor = ChessGame.TeamColor.BLACK;
+                otherTeam = ChessGame.TeamColor.WHITE;
+                otherUser = currGame.getWhiteUsername();
             }
 
             String errorMessage = null;
             var makeTheMove = true;
+            var rootInCheckmate = false;
+            var oppInCheckmate = false;
+            var oppInCheck = false;
 
             if (teamColor == null) {
                 makeTheMove = false;
@@ -109,6 +160,12 @@ public class WebSocketHandler {
                 errorMessage = "Not your turn";
             }
 
+            if ((currGame.getGame().getTeamTurn() == teamColor) && (currGame.getGame().isInCheckmate(teamColor))) {
+                makeTheMove = false;
+                rootInCheckmate = true;
+                errorMessage = "Can't make move, you're in checkmate";
+            }
+
             if ((!currGame.getGame().validMoves(chessMove.getStartPosition()).contains(chessMove)) && (makeTheMove)) {
                 makeTheMove = false;
                 errorMessage = "Not a valid move.";
@@ -116,18 +173,40 @@ public class WebSocketHandler {
 
             if (makeTheMove) {
 
-                var messageForOthers = String.format("%s moved from %s to %s", username, chessMove.getStartPosition().toString(), chessMove.getEndPosition().toString());
-                var notification = new Notification(ServerMessage.ServerMessageType.NOTIFICATION, messageForOthers);
-
                 currGame.getGame().makeMove(chessMove);
                 gameDAO.UpdateGame(currGame);
+
+
+                if (currGame.getGame().isInCheckmate(otherTeam)) {
+                    oppInCheckmate = true;
+                }
+                if (currGame.getGame().isInCheck(otherTeam)) {
+                    oppInCheck = true;
+                }
+
+                String messageForOthers = String.format("%s moved from %s to %s", username, chessMove.getStartPosition().toString(), chessMove.getEndPosition().toString());
+                if (oppInCheckmate) {
+                    messageForOthers = messageForOthers + String.format(" and %s in is checkmate.", otherUser);
+                }
+                if (oppInCheck) {
+                    messageForOthers = messageForOthers + String.format(" and %s in is check.", otherUser);
+                }
+                var notification = new Notification(ServerMessage.ServerMessageType.NOTIFICATION, messageForOthers, !oppInCheckmate);
+
                 var loadGame = new LoadGame(ServerMessage.ServerMessageType.LOAD_GAME, writeGame(gameDAO.findGame(gameID)));
                 makeMoveResponse(gameID, authToken, notification, loadGame);
 
             }
             else {
-                var errorResponse = new Error(ServerMessage.ServerMessageType.ERROR, errorMessage);
-                sendError(new Gson().toJson(errorResponse), session);
+                if (rootInCheckmate) {
+                    // send error to root
+                    var errorResponse = new Error(ServerMessage.ServerMessageType.ERROR, errorMessage);
+                    connections.connections.get(gameID).get(authToken).send(new Gson().toJson(errorResponse));
+                }
+                else {
+                    var errorResponse = new Error(ServerMessage.ServerMessageType.ERROR, errorMessage);
+                    sendError(new Gson().toJson(errorResponse), session);
+                }
             }
 
         }
@@ -214,7 +293,7 @@ public class WebSocketHandler {
                 connections.add(gameID, authToken, session);
 
                 var messageForOthers = String.format("%s joined the game as %s.", username, playerColor);
-                var notification = new Notification(ServerMessage.ServerMessageType.NOTIFICATION, messageForOthers);
+                var notification = new Notification(ServerMessage.ServerMessageType.NOTIFICATION, messageForOthers, true);
 
                 var loadGame = new LoadGame(ServerMessage.ServerMessageType.LOAD_GAME, writeGame(gameDAO.findGame(gameID)));
 
@@ -254,7 +333,7 @@ public class WebSocketHandler {
             if (addPlayer) {
                 var username = authDAO.retrieveAuthToken(authToken).getUsername();
                 var messageForOthers = String.format("%s observes the game.", username);
-                var notification = new Notification(ServerMessage.ServerMessageType.NOTIFICATION, messageForOthers);
+                var notification = new Notification(ServerMessage.ServerMessageType.NOTIFICATION, messageForOthers, true);
 
                 var loadGame = new LoadGame(ServerMessage.ServerMessageType.LOAD_GAME, writeGame(gameDAO.findGame(gameID)));
 

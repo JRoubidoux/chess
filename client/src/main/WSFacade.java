@@ -27,6 +27,7 @@ public class WSFacade extends Endpoint {
     Session session;
     private Game game = new Game();
     private ChessGame.TeamColor userColor;
+    private boolean gameInPlay = true;
 
 
     public WSFacade(String url, String color) throws ResponseException {
@@ -56,7 +57,9 @@ public class WSFacade extends Endpoint {
                         drawChessboard();
                     }
                     else if (notification.getServerMessageType() == ServerMessage.ServerMessageType.NOTIFICATION) {
-                        printNotification(new Gson().fromJson(message, Notification.class));
+                        var fromJson = new Gson().fromJson(message, Notification.class);
+                        gameInPlay = fromJson.getGameInPlay();
+                        printNotification(fromJson);
                         }
                     else {
                         printError(new Gson().fromJson(message, Error.class));
@@ -91,12 +94,16 @@ public class WSFacade extends Endpoint {
     }
 
     public void makeMove(ChessMove move, int gameID, String authToken) throws ResponseException{
-        try {
-            var makeMoveC = new MakeMoveCommand(gameID, authToken, move);
-            this.session.getBasicRemote().sendText(new Gson().toJson(makeMoveC));
+        if (gameInPlay) {
+            try {
+                var makeMoveC = new MakeMoveCommand(gameID, authToken, move);
+                this.session.getBasicRemote().sendText(new Gson().toJson(makeMoveC));
+            } catch (IOException ex) {
+                throw new ResponseException(500, ex.getMessage());
+            }
         }
-        catch (IOException ex) {
-            throw new ResponseException(500, ex.getMessage());
+        else {
+            System.out.println("Game over, no more moves can be made.");
         }
 
     }
