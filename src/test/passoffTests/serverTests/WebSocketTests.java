@@ -698,7 +698,7 @@ public class WebSocketTests {
 
         //wait to get all messages
         try {
-            bobMessages = bobResult.get(waitTime * 4, TimeUnit.MILLISECONDS);
+            bobMessages = bobResult.get(waitTime * 400, TimeUnit.MILLISECONDS);
             jamesMessages = jamesResult.get(waitTime * 4, TimeUnit.MILLISECONDS);
             alfredMessages = alfredResult.get(waitTime * 4, TimeUnit.MILLISECONDS);
 

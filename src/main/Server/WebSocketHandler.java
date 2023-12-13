@@ -8,6 +8,7 @@ import chess.*;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.TypeAdapter;
+import com.google.gson.internal.LinkedTreeMap;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonToken;
 import com.google.gson.stream.JsonWriter;
@@ -38,7 +39,7 @@ public class WebSocketHandler {
         switch (command.getCommandType()) {
             case JOIN_PLAYER -> joinPlayer(new Gson().fromJson(message, JoinPlayerCommand.class), session);
             case JOIN_OBSERVER -> joinObserver(new Gson().fromJson(message, JoinObserverCommand.class), session);
-            case MAKE_MOVE -> makeMove(new Gson().fromJson(message, MakeMoveCommand.class), session);
+            case MAKE_MOVE -> makeMove(jsonToMakeMove(message), session);
             // case LEAVE ->
         }
     }
@@ -57,6 +58,26 @@ public class WebSocketHandler {
         }
 
         connections.remove(gameID, authToken);
+    }
+
+    public MakeMoveCommand jsonToMakeMove(String json) {
+        var map = new Gson().fromJson(json, HashMap.class);
+        var gameID = ((Double) map.get("gameID")).intValue();
+        var authToken = (String) map.get("authToken");
+        var move = getMove((LinkedTreeMap<String, Object>) map.get("move"));
+        return new MakeMoveCommand(gameID, authToken, move);
+    }
+
+    public ChessMoveImp getMove(LinkedTreeMap<String, Object> map) {
+        var startPos = getPos((LinkedTreeMap<String, Double>) map.get("startPos"));
+        var endPos = getPos((LinkedTreeMap<String, Double>) map.get("endPos"));
+        return new ChessMoveImp(startPos, endPos);
+    }
+
+    public ChessPositionImp getPos(LinkedTreeMap<String, Double> map) {
+        int row = ((Double) map.get("row")).intValue();
+        int column = ((Double) map.get("column")).intValue();
+        return new ChessPositionImp(row, column);
     }
 
     private void makeMove(MakeMoveCommand makeMoveC, Session session) throws IOException {
