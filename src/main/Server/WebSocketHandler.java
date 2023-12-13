@@ -38,7 +38,7 @@ public class WebSocketHandler {
         switch (command.getCommandType()) {
             case JOIN_PLAYER -> joinPlayer(new Gson().fromJson(message, JoinPlayerCommand.class), session);
             case JOIN_OBSERVER -> joinObserver(new Gson().fromJson(message, JoinObserverCommand.class), session);
-            case MAKE_MOVE ->
+            case MAKE_MOVE -> makeMove(new Gson().fromJson(message, MakeMoveCommand.class), session);
             // case LEAVE ->
         }
     }
@@ -92,11 +92,46 @@ public class WebSocketHandler {
                 errorMessage = "Not a valid move.";
             }
 
+            if (makeTheMove) {
+                var username = authDAO.retrieveAuthToken(authToken).getUsername();
+                var messageForOthers = String.format("%s moved from %s to %s", username, chessMove.getStartPosition().toString(), chessMove.getEndPosition().toString());
+                var notification = new Notification(ServerMessage.ServerMessageType.NOTIFICATION, messageForOthers);
+
+                currGame.getGame().makeMove(chessMove);
+                gameDAO.UpdateGame(currGame);
+                var loadGame = new LoadGame(ServerMessage.ServerMessageType.LOAD_GAME, writeGame(gameDAO.findGame(gameID)));
+                makeMoveResponse(gameID, authToken, notification, loadGame);
+
+            }
+            else {
+                var errorResponse = new Error(ServerMessage.ServerMessageType.ERROR, errorMessage);
+                sendError(new Gson().toJson(errorResponse), session);
+            }
+
         }
-        catch (DataAccessException e) {
+        catch (DataAccessException | InvalidMoveException e) {
             var temp = e;
         }
-        
+    }
+
+    public void makeMoveResponse(int gameID, String authToken, Notification notification, LoadGame loadGame) throws IOException {
+
+        // send notification
+        for (var c : connections.connections.get((Integer) gameID).values()) {
+            if (c.session.isOpen()) {
+                if (!c.authToken.equals(authToken)) {
+                    c.send(new Gson().toJson(notification));
+                }
+            }
+        }
+
+        for (var c : connections.connections.get((Integer) gameID).values()) {
+            if (c.session.isOpen()) {
+                if (!c.authToken.equals(authToken)) {
+                    c.send(new Gson().toJson(loadGame));
+                }
+            }
+        }
     }
 
     private void joinPlayer(JoinPlayerCommand joinPlayerC, Session session) throws IOException {
