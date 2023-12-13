@@ -8,8 +8,9 @@ import com.google.gson.stream.JsonToken;
 import com.google.gson.stream.JsonWriter;
 import exception.ResponseException;
 import webSocketMessages.serverMessages.LoadGame;
-import webSocketMessages.userCommands.UserGameCommand;
-import webSocketMessages.userCommands.JoinPlayerCommand;
+import webSocketMessages.serverMessages.Notification;
+import webSocketMessages.serverMessages.Error;
+import webSocketMessages.userCommands.*;
 import webSocketMessages.serverMessages.ServerMessage;
 
 import javax.websocket.*;
@@ -18,34 +19,49 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.HashMap;
 
+import static ui.EscapeSequences.*;
+
 //need to extend Endpoint for websocket to work properly
 public class WSFacade extends Endpoint {
 
     Session session;
-    NotificationHandler notificationHandler;
     private Game game = new Game();
+    private ChessGame.TeamColor userColor;
 
 
-    public WSFacade(String url, NotificationHandler notificationHandler) throws ResponseException {
+    public WSFacade(String url, String color) throws ResponseException {
         try {
             url = url.replace("http", "ws");
-            URI socketURI = new URI(url + "/connect");
-            this.notificationHandler = notificationHandler;
+            URI socketURI = new URI(url);
 
             WebSocketContainer container = ContainerProvider.getWebSocketContainer();
             this.session = container.connectToServer(this, socketURI);
+            this.userColor = null;
+            if (color != null) {
+                if (color.equals("white")) {
+                    this.userColor = ChessGame.TeamColor.WHITE;
+                }
+                if (color.equals("black")) {
+                    this.userColor = ChessGame.TeamColor.BLACK;
+                }
+            }
 
             //set message handler
             this.session.addMessageHandler(new MessageHandler.Whole<String>() {
                 @Override
                 public void onMessage(String message) {
                     ServerMessage notification = new Gson().fromJson(message, ServerMessage.class);
-                    switch (notification.getServerMessageType()) {
-                        case LOAD_GAME -> loadGame(notification);
-                        // case ERROR -> ;
-                        case NOTIFICATION -> ;
+                    if (notification.getServerMessageType() == ServerMessage.ServerMessageType.LOAD_GAME) {
+                        loadGame(new Gson().fromJson(message, LoadGame.class));
+                        drawChessboard();
                     }
-                    // notificationHandler.notify(notification);
+                    else if (notification.getServerMessageType() == ServerMessage.ServerMessageType.NOTIFICATION) {
+                        printNotification(new Gson().fromJson(message, Notification.class));
+                        }
+                    else {
+                        printError(new Gson().fromJson(message, Error.class));
+                    }
+
                 }
             });
         } catch (DeploymentException | IOException | URISyntaxException ex) {
@@ -57,44 +73,63 @@ public class WSFacade extends Endpoint {
         return this.game;
     }
 
-    public void loadGame(ServerMessage notification) {
-        var loadGame = (LoadGame) notification;
+    public void loadGame(LoadGame loadGame) {
         this.game = readGame(loadGame);
     }
 
-    public void
+    public void printNotification(Notification notification) {
+        System.out.println(notification.getMessage());
+    }
+
+    public void printError(Error error) {
+        System.out.println(error.getMessage());
+    }
 
     //Endpoint requires this method, but you don't have to do anything
     @Override
     public void onOpen(Session session, EndpointConfig endpointConfig) {
     }
 
-    public void joinPlayer(int gameID, String authToken, ) throws ResponseException {
+    public void makeMove(ChessMove move, int gameID, String authToken, String teamColor) throws ResponseException{
+        try {
+            var makeMoveC = new MakeMoveCommand(gameID, authToken, move, teamColor);
+            this.session.getBasicRemote().sendText(new Gson().toJson(makeMoveC));
+        }
+        catch (IOException ex) {
+            throw new ResponseException(500, ex.getMessage());
+        }
+
+    }
+
+    public void joinPlayer(int gameID, String authToken, String color) throws ResponseException {
         try {
             //int gameID, String authToken, ChessGame.TeamColor color
-            var joinPlayerC = new JoinPlayerCommand(gameID, authToken);
+            var joinPlayerC = new JoinPlayerCommand(gameID, authToken, color);
             this.session.getBasicRemote().sendText(new Gson().toJson(joinPlayerC));
         } catch (IOException ex) {
             throw new ResponseException(500, ex.getMessage());
         }
     }
 
-//    public void leavePetShop(String visitorName) throws ResponseException {
+    public void joinObserve(int gameID, String authToken) throws ResponseException {
+        try {
+            var joinObserverC = new JoinObserverCommand(gameID, authToken);
+            this.session.getBasicRemote().sendText(new Gson().toJson(joinObserverC));
+        } catch (IOException e) {
+            throw new ResponseException(500, e.getMessage());
+        }
+    }
+
+//    public void leave(int gameID, String authToken, String player) throws ResponseException {
 //        try {
-//            var action = new Action(Action.Type.EXIT, visitorName);
-//            this.session.getBasicRemote().sendText(new Gson().toJson(action));
+//            var command = new LeaveCommand(gameID, authToken);
+//            this.session.getBasicRemote().sendText(new Gson().toJson(command));
 //            this.session.close();
 //        } catch (IOException ex) {
 //            throw new ResponseException(500, ex.getMessage());
 //        }
 //    }
 
-//    map.put("gameID", gameID);
-//        map.put("gameName", gameName);
-//        map.put("currentTurn", currTurn);
-//        map.put("blackUser", blackU);
-//        map.put("whiteUser", whiteU);
-//        map.put("gameState", json);
     public Game readGame(LoadGame loadGameImp) {
         var json = loadGameImp.getGame();
         var map = new Gson().fromJson(json, HashMap.class);
@@ -108,7 +143,8 @@ public class WSFacade extends Endpoint {
         gameImp.setTeamTurn(color);
         var gameModel = new Game();
         gameModel.setGameName((String) map.get("gameName"));
-        gameModel.setGameID((int) map.get("gameID"));
+        Double doubleV = (double) map.get("gameID");
+        gameModel.setGameID(doubleV.intValue());
         gameModel.setWhiteUsername((String) map.get("whiteUser"));
         gameModel.setBlackUsername((String) map.get("blackUser"));
         gameModel.setGame(gameImp);
@@ -226,6 +262,120 @@ public class WSFacade extends Endpoint {
         @Override
         public void write(JsonWriter jsonWriter, ChessPiece chessPiece) throws IOException {
 
+        }
+    }
+
+    public void drawChessboard() {
+        var game = this.getGame();
+        var chessGame = game.getGame();
+        var chessBoard = (ChessBoardImp) chessGame.getBoard();
+
+        if ((this.userColor == null) || (this.userColor == ChessGame.TeamColor.WHITE)) {
+            System.out.print(SET_BG_COLOR_LIGHT_GREY);
+            System.out.print(SET_TEXT_COLOR_BLACK);
+            System.out.print("    h  g  f  e  d  c  b  a    ");
+            System.out.print(SET_BG_COLOR_BLACK);
+            System.out.print("\n");
+
+            for (int i = 0; i < 8; i++) {
+                System.out.print(SET_BG_COLOR_LIGHT_GREY);
+                System.out.printf(" %d ", i + 1);
+                for (int j = 0; j < 8; j++) {
+                    var pos = new ChessPositionImp(i, j);
+                    setChessboardColor(i + j);
+                    printPiece(chessBoard, pos);
+                }
+                System.out.print(SET_BG_COLOR_LIGHT_GREY);
+                System.out.print(SET_TEXT_COLOR_BLACK);
+                System.out.printf(" %d ", i + 1);
+                System.out.print(SET_BG_COLOR_BLACK);
+                System.out.print("\n");
+            }
+            System.out.print(SET_BG_COLOR_LIGHT_GREY);
+            System.out.print(SET_TEXT_COLOR_BLACK);
+            System.out.print("    h  g  f  e  d  c  b  a    ");
+            System.out.print("\u001b" + "[48;49;" + "15m");
+            System.out.print(SET_TEXT_COLOR_WHITE);
+            System.out.print("\n");
+        }
+        else {
+            System.out.print(SET_BG_COLOR_LIGHT_GREY);
+            System.out.print(SET_TEXT_COLOR_BLACK);
+            System.out.print("    a  b  c  d  e  f  g  h    ");
+            System.out.print(SET_BG_COLOR_BLACK);
+            System.out.print("\n");
+
+            for (int i = 7; i >= 0; i--) {
+                System.out.print(SET_BG_COLOR_LIGHT_GREY);
+                System.out.printf(" %d ", i + 1);
+                for (int j = 7; j >= 0; j--) {
+                    var pos = new ChessPositionImp(i, j);
+                    setChessboardColor(i + j);
+                    printPiece(chessBoard, pos);
+                }
+                System.out.print(SET_BG_COLOR_LIGHT_GREY);
+                System.out.print(SET_TEXT_COLOR_BLACK);
+                System.out.printf(" %d ", i + 1);
+                System.out.print(SET_BG_COLOR_BLACK);
+                System.out.print("\n");
+            }
+            System.out.print(SET_BG_COLOR_LIGHT_GREY);
+            System.out.print(SET_TEXT_COLOR_BLACK);
+            System.out.print("    a  b  c  d  e  f  g  h    ");
+            System.out.print("\u001b" + "[48;49;" + "15m");
+            System.out.print(SET_TEXT_COLOR_WHITE);
+            System.out.print("\n");
+        }
+    }
+
+    public void setChessboardColor(int number) {
+        if (((number) % 2) == 0) {
+            System.out.print(SET_BG_COLOR_WHITE);
+        }
+        else {
+            System.out.print(SET_BG_COLOR_BLACK);
+        }
+    }
+
+    public void setPieceColor(ChessPiece chessPiece) {
+        if (chessPiece == null) {
+            System.out.print(SET_TEXT_COLOR_BLACK);
+        }
+        else {
+            if (chessPiece.getTeamColor() == ChessGame.TeamColor.WHITE) {
+                System.out.print(SET_TEXT_COLOR_RED);
+            }
+            else {
+                System.out.print(SET_TEXT_COLOR_BLUE);
+            }
+        }
+    }
+
+    public void printPiece(ChessBoardImp chessBoard, ChessPositionImp pos) {
+        var chessPiece = chessBoard.getPiece(pos);
+        setPieceColor(chessPiece);
+        if (chessPiece == null) {
+            System.out.print("   ");
+        }
+        else {
+            if (chessPiece.getPieceType() == ChessPiece.PieceType.ROOK) {
+                System.out.print(" R ");
+            }
+            else if (chessPiece.getPieceType() == ChessPiece.PieceType.KNIGHT) {
+                System.out.print(" N ");
+            }
+            else if (chessPiece.getPieceType() == ChessPiece.PieceType.BISHOP) {
+                System.out.print(" B ");
+            }
+            else if (chessPiece.getPieceType() == ChessPiece.PieceType.KING) {
+                System.out.print(" K ");
+            }
+            else if (chessPiece.getPieceType() == ChessPiece.PieceType.QUEEN) {
+                System.out.print(" Q ");
+            }
+            else if (chessPiece.getPieceType() == ChessPiece.PieceType.PAWN) {
+                System.out.print(" P ");
+            }
         }
     }
 }

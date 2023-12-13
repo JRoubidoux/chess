@@ -1,10 +1,9 @@
-import Models.Game;
-import chess.*;
+import chess.ChessMoveImp;
+import chess.ChessPositionImp;
+import exception.ResponseException;
 
 import java.util.Arrays;
 import java.util.Scanner;
-
-import static ui.EscapeSequences.*;
 
 public class Repl {
 
@@ -135,37 +134,75 @@ public class Repl {
     }
 
     public void joinedOrObservedGame(String[] params, String authToken) {
-        var gameID = Integer.parseInt(params[0]);
-        String playerColor = null;
-        if (params.length == 2) {
-            playerColor = params[1];
+        try {
+            var gameID = Integer.parseInt(params[0]);
+            String playerColor = null;
+            if (params.length == 2) {
+                playerColor = params[1];
+            }
+            var wsConn = new WSFacade("ws://localhost:8080/connect", playerColor);
+            if (playerColor != null) {
+                runJoinedLoop(gameID, authToken, playerColor, wsConn);
+            } else {
+                runObservedLoop(gameID, authToken, wsConn);
+            }
         }
-
-        if (playerColor != null) {
-            runJoinedLoop(gameID, authToken, playerColor);
-        } else {
-            // observe
+        catch (ResponseException e) {
+            var temp = e;
         }
     }
 
-    public void runJoinedLoop(int gameID, String authToken, String playerColor) {
+    public void runObservedLoop(int gameID, String authToken, WSFacade wsConn) {
+        try {
+            wsConn.joinObserve(gameID, authToken);
+
+            Scanner scanner = new Scanner(System.in);
+            String userInput = "";
+            while (!userInput.equals("leave")) {
+                System.out.println();
+                userInput = scanner.nextLine().toLowerCase();
+                switch (userInput) {
+                    case "help" -> printHelpJoined();
+                    case "redraw chess board" -> drawChessBoard(wsConn);
+                    //case "leave" -> ;
+                    //                case "make move" -> ;
+                    //                case "resign" -> ;
+                    //                case "highlight legal moves" -> ;
+                    default -> System.out.println("Invalid, try again.");
+                }
+            }
+        }
+        catch (ResponseException e) {
+            System.out.println(e.getMessage());
+        }
+    }
+
+    public void runJoinedLoop(int gameID, String authToken, String playerColor, WSFacade wsConn) {
         // print chess board
         // don't allow to make move until other player joined.
         // once have two players, let white go first.
+        try {
+            wsConn.joinPlayer(gameID, authToken, playerColor);
 
-        Scanner scanner = new Scanner(System.in);
-        String userInput = "";
-        while (!userInput.equals("leave")) {
-            System.out.println();
-            userInput = scanner.nextLine().toLowerCase();
-            switch (userInput) {
-                case "help" -> printHelpJoined();
-                case "redraw chess board" -> ;
-                case "leave" -> ;
-                case "make move" -> ;
-                case "resign" -> ;
-                case "highlight legal moves" -> ;
+            Scanner scanner = new Scanner(System.in);
+            String userInput = "";
+            while (!userInput.equals("leave")) {
+                System.out.println();
+                userInput = scanner.nextLine().toLowerCase();
+                switch (userInput) {
+                    case "help" -> printHelpJoined();
+                    case "redraw chess board" -> drawChessBoard(wsConn);
+                    case "make move" -> makeMove(gameID, authToken, playerColor, wsConn);
+                    //case "leave" -> ;
+                    //                case "make move" -> ;
+                    //                case "resign" -> ;
+                    //                case "highlight legal moves" -> ;
+                    default -> System.out.println("Invalid, try again.");
+                }
             }
+        }
+        catch (ResponseException e) {
+            System.out.println(e.getMessage());
         }
     }
 
@@ -179,122 +216,73 @@ public class Repl {
     }
 
 
+    public void drawChessBoard(WSFacade wsConn) {
+        wsConn.drawChessboard();
+    }
 
+    public void makeMove(int gameID, String authToken, String teamColor, WSFacade wsConn) {
+        try {
+            var inValid = true;
+            String[] tokens = new String[2];
 
+            while (inValid) {
+                inValid = false;
 
+                System.out.println("Enter position from (a1) then position to (a2): ");
+                var scanner = new Scanner(System.in);
+                var userInput = scanner.nextLine().toLowerCase();
+                tokens = userInput.split(" ");
 
+                for (String token : tokens) {
+                    if (token.length() != 2) {
+                        inValid = true;
+                        break;
+                    }
+                    if (!charIsCorrectLetter(token.charAt(0))) {
+                        inValid = true;
+                        break;
+                    }
+                    if (!charIsCorrectNumber(token.charAt(1))) {
+                        inValid = true;
+                        break;
+                    }
+                }
+            }
 
+            var startPos = getPosFromInput(tokens[0]);
+            var endPos = getPosFromInput(tokens[1]);
 
-
-
-//        serverConn.updateGame();
-//
-//        var game = new Game();
-//        game.setGame(new ChessGameImp());
-//        var chessGame = game.getGame();
-//        var chessBoard = (ChessBoardImp) chessGame.getBoard();
-//        chessBoard.resetBoard();
-//        System.out.print(SET_BG_COLOR_LIGHT_GREY);
-//        System.out.print(SET_TEXT_COLOR_BLACK);
-//        System.out.print("    h  g  f  e  d  c  b  a    ");
-//        System.out.print(SET_BG_COLOR_BLACK);
-//        System.out.print("\n");
-//
-//        for (int i = 0; i < 8; i++) {
-//            System.out.print(SET_BG_COLOR_LIGHT_GREY);
-//            System.out.printf(" %d ", i+1);
-//            for (int j = 0; j < 8; j++) {
-//                var pos = new ChessPositionImp(i, j);
-//                setChessboardColor(i+j);
-//                printPiece(chessBoard, pos);
-//            }
-//            System.out.print(SET_BG_COLOR_LIGHT_GREY);
-//            System.out.print(SET_TEXT_COLOR_BLACK);
-//            System.out.printf(" %d ", i+1);
-//            System.out.print(SET_BG_COLOR_BLACK);
-//            System.out.print("\n");
-//        }
-//        System.out.print(SET_BG_COLOR_LIGHT_GREY);
-//        System.out.print(SET_TEXT_COLOR_BLACK);
-//        System.out.print("    h  g  f  e  d  c  b  a    ");
-//        System.out.print(SET_BG_COLOR_BLACK);
-//        System.out.print("\n\n");
-//
-//
-//        System.out.print(SET_BG_COLOR_LIGHT_GREY);
-//        System.out.print(SET_TEXT_COLOR_BLACK);
-//        System.out.print("    a  b  c  d  e  f  g  h    ");
-//        System.out.print(SET_BG_COLOR_BLACK);
-//        System.out.print("\n");
-//
-//        for (int i = 7; i >= 0; i--) {
-//            System.out.print(SET_BG_COLOR_LIGHT_GREY);
-//            System.out.printf(" %d ", i+1);
-//            for (int j = 7; j >= 0; j--) {
-//                var pos = new ChessPositionImp(i, j);
-//                setChessboardColor(i+j);
-//                printPiece(chessBoard, pos);
-//            }
-//            System.out.print(SET_BG_COLOR_LIGHT_GREY);
-//            System.out.print(SET_TEXT_COLOR_BLACK);
-//            System.out.printf(" %d ", i+1);
-//            System.out.print(SET_BG_COLOR_BLACK);
-//            System.out.print("\n");
-//        }
-//        System.out.print(SET_BG_COLOR_LIGHT_GREY);
-//        System.out.print(SET_TEXT_COLOR_BLACK);
-//        System.out.print("    a  b  c  d  e  f  g  h    ");
-//        System.out.print("\u001b" + "[48;49;" + "15m");
-//        System.out.print(SET_TEXT_COLOR_WHITE);
-
-    public void setChessboardColor(int number) {
-        if (((number) % 2) == 0) {
-            System.out.print(SET_BG_COLOR_WHITE);
+            var chessMove = new ChessMoveImp(startPos, endPos);
+            wsConn.makeMove(chessMove, gameID, authToken, teamColor);
         }
-        else {
-            System.out.print(SET_BG_COLOR_BLACK);
+        catch (ResponseException e) {
+            var temp = e;
         }
     }
 
-    public void setPieceColor(ChessPiece chessPiece) {
-        if (chessPiece == null) {
-            System.out.print(SET_TEXT_COLOR_BLACK);
-        }
-        else {
-            if (chessPiece.getTeamColor() == ChessGame.TeamColor.WHITE) {
-                System.out.print(SET_TEXT_COLOR_RED);
-            }
-            else {
-                System.out.print(SET_TEXT_COLOR_BLUE);
-            }
-        }
+    public boolean charIsCorrectLetter(char c) {
+        return (c == 'a') || (c == 'b') || (c == 'c') || (c == 'd') || (c == 'e') || (c == 'f') || (c == 'g') || (c == 'h');
     }
 
-    public void printPiece(ChessBoardImp chessBoard, ChessPositionImp pos) {
-        var chessPiece = chessBoard.getPiece(pos);
-        setPieceColor(chessPiece);
-        if (chessPiece == null) {
-            System.out.print("   ");
-        }
-        else {
-            if (chessPiece.getPieceType() == ChessPiece.PieceType.ROOK) {
-              System.out.print(" R ");
+    public boolean charIsCorrectNumber(char c) {
+        return (c == '1') || (c == '2') || (c == '3') || (c == '4') || (c == '5') || (c == '6') || (c == '7') || (c == '8');
+    }
+
+    public ChessPositionImp getPosFromInput(String token) {
+        int row = -1;
+        int column = -1;
+        String letters = "abcdefgh";
+        String numbers = "12345678";
+
+        for (int i = 0; i < 8; i++) {
+            if (token.charAt(0) == letters.charAt(i)) {
+                row = i;
             }
-            else if (chessPiece.getPieceType() == ChessPiece.PieceType.KNIGHT) {
-                System.out.print(" N ");
-            }
-            else if (chessPiece.getPieceType() == ChessPiece.PieceType.BISHOP) {
-                System.out.print(" B ");
-            }
-            else if (chessPiece.getPieceType() == ChessPiece.PieceType.KING) {
-                System.out.print(" K ");
-            }
-            else if (chessPiece.getPieceType() == ChessPiece.PieceType.QUEEN) {
-                System.out.print(" Q ");
-            }
-            else if (chessPiece.getPieceType() == ChessPiece.PieceType.PAWN) {
-                System.out.print(" P ");
+            if (token.charAt(1) == numbers.charAt(i)) {
+                column = i;
             }
         }
+
+        return new ChessPositionImp(row, column);
     }
 }

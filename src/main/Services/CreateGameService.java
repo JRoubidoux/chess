@@ -37,8 +37,10 @@ public class CreateGameService {
                 throw new DataAccessException("bad request");
             }
             game.setGameName(request.getGameName());
-            //game.setGameID(gameIDCounter);
-            game.setGame(new ChessGameImp());
+            var chessGame = new ChessGameImp();
+            var chessBoard = chessGame.getBoard();
+            chessBoard.resetBoard();
+            game.setGame(chessGame);
             var gameIDCounter = gameDao.insertNewGame(game);
             var response = new CreateGameServiceRes();
             response.setGameID(gameIDCounter);

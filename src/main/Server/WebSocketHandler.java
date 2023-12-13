@@ -12,18 +12,17 @@ import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonToken;
 import com.google.gson.stream.JsonWriter;
 import dataAccess.DataAccessException;
-import org.eclipse.jetty.websocket.api.Session;
 import org.eclipse.jetty.websocket.api.annotations.OnWebSocketMessage;
 import org.eclipse.jetty.websocket.api.annotations.WebSocket;
+import webSocketMessages.serverMessages.Error;
 import webSocketMessages.serverMessages.LoadGame;
 import webSocketMessages.serverMessages.Notification;
 import webSocketMessages.serverMessages.ServerMessage;
-import webSocketMessages.userCommands.JoinPlayerCommand;
-import webSocketMessages.userCommands.UserGameCommand;
+import webSocketMessages.userCommands.*;
 
 import java.io.IOException;
 import java.util.HashMap;
-
+import org.eclipse.jetty.websocket.api.Session;
 
 @WebSocket
 public class WebSocketHandler {
@@ -37,53 +36,166 @@ public class WebSocketHandler {
     public void onMessage(Session session, String message) throws IOException {
         UserGameCommand command = new Gson().fromJson(message, UserGameCommand.class);
         switch (command.getCommandType()) {
-            case JOIN_PLAYER -> joinPlayer(command, session);
-            // case JOIN_OBSERVER -> exit(action.visitorName());
+            case JOIN_PLAYER -> joinPlayer(new Gson().fromJson(message, JoinPlayerCommand.class), session);
+            case JOIN_OBSERVER -> joinObserver(new Gson().fromJson(message, JoinObserverCommand.class), session);
+            case MAKE_MOVE ->
+            // case LEAVE ->
         }
     }
 
-    private void joinPlayer(UserGameCommand command, Session session) throws IOException {
-        var joinPlayerC = (JoinPlayerCommand) command;
+    private void leave(LeaveCommand command) {
+        var gameID = command.getGameID();
+        var authToken = command.getAuthString();
+        //var color = command.getColor();
+
+
+        try {
+            var username = authDAO.retrieveAuthToken(authToken).getUsername();
+        }
+        catch (DataAccessException e) {
+            var temp = e;
+        }
+
+        connections.remove(gameID, authToken);
+    }
+
+    private void makeMove(MakeMoveCommand makeMoveC, Session session) throws IOException {
+        
+    }
+
+    private void joinPlayer(JoinPlayerCommand joinPlayerC, Session session) throws IOException {
 
         var gameID = joinPlayerC.getGameID();
         var authToken = joinPlayerC.getAuthString();
         var playerColor = "white";
-        if (joinPlayerC.getPlayerColor() == ChessGame.TeamColor.BLACK) {
+        if (joinPlayerC.getPlayerColor().equalsIgnoreCase("black")) {
             playerColor = "black";
         }
 
+
+        try {
+            String errorMessage = null;
+            String username = null;
+            var addPlayer = true;
+
+            if (!authDAO.authInDB(authToken)) {
+                addPlayer = false;
+                errorMessage = "Bad authToken.";
+            }
+
+            if ((!gameDAO.gameInDB(gameID)) && addPlayer) {
+                addPlayer = false;
+                errorMessage = "Game doesn't exist.";
+            }
+
+            if (addPlayer) {
+                username = authDAO.retrieveAuthToken(authToken).getUsername();
+            }
+
+            if ((playerColor.equals("white")) && addPlayer) {
+                var dbResult = gameDAO.findGame(gameID).getWhiteUsername();
+                if (dbResult != null) {
+                    if (!dbResult.equals(username)) {
+                        addPlayer = false;
+                        errorMessage = "Color in game is already taken.";
+                    }
+                }
+                else {
+                    addPlayer = false;
+                    errorMessage = "HTTP method didn't join player.";
+                }
+            }
+            if ((playerColor.equals("black")) && addPlayer) {
+                var dbResult = gameDAO.findGame(gameID).getBlackUsername();
+                if (dbResult != null) {
+                    if (!dbResult.equals(username)) {
+                        addPlayer = false;
+                        errorMessage = "Color in game is already taken.";
+                    }
+                }
+                else {
+                    addPlayer = false;
+                    errorMessage = "HTTP method didn't join player.";
+                }
+            }
+            if (addPlayer) {
+
+                connections.add(gameID, authToken, session);
+
+                var messageForOthers = String.format("%s joined the game as %s.", username, playerColor);
+                var notification = new Notification(ServerMessage.ServerMessageType.NOTIFICATION, messageForOthers);
+
+                var loadGame = new LoadGame(ServerMessage.ServerMessageType.LOAD_GAME, writeGame(gameDAO.findGame(gameID)));
+
+                joinPlayerResponse(gameID, authToken, notification, loadGame);
+            }
+            else {
+                var errorResponse = new Error(ServerMessage.ServerMessageType.ERROR, errorMessage);
+                sendError(new Gson().toJson(errorResponse), session);
+            }
+        }
+        catch (DataAccessException e) {
+            var temp = e;
+        }
+    }
+
+    private void joinObserver(JoinObserverCommand joinPlayerC, Session session) throws IOException {
+
+        var gameID = joinPlayerC.getGameID();
+        var authToken = joinPlayerC.getAuthString();
+
         connections.add(gameID, authToken, session);
         try {
-            var username = authDAO.retrieveAuthToken(authToken).getUsername();
-            var messageForOthers = String.format("%s joined the game.", username);
-            var notification = new Notification(ServerMessage.ServerMessageType.NOTIFICATION, messageForOthers);
 
-            var loadGame = new LoadGame(ServerMessage.ServerMessageType.LOAD_GAME, writeGame(gameDAO.findGame(gameID)));
+            String errorMessage = null;
+            var addPlayer = true;
 
-            connections.joinPlayerResponse(gameID, authToken, notification, loadGame);
+            if (!authDAO.authInDB(authToken)) {
+                addPlayer = false;
+                errorMessage = "Bad authToken.";
+            }
+
+            if ((!gameDAO.gameInDB(gameID)) && addPlayer) {
+                addPlayer = false;
+                errorMessage = "Game doesn't exist.";
+            }
+
+            if (addPlayer) {
+                var username = authDAO.retrieveAuthToken(authToken).getUsername();
+                var messageForOthers = String.format("%s observes the game.", username);
+                var notification = new Notification(ServerMessage.ServerMessageType.NOTIFICATION, messageForOthers);
+
+                var loadGame = new LoadGame(ServerMessage.ServerMessageType.LOAD_GAME, writeGame(gameDAO.findGame(gameID)));
+
+                joinPlayerResponse(gameID, authToken, notification, loadGame);
+            }
+            else {
+                var errorResponse = new Error(ServerMessage.ServerMessageType.ERROR, errorMessage);
+                sendError(new Gson().toJson(errorResponse), session);
+            }
         }
         catch (DataAccessException e) {
 
         }
     }
 
-//    private void exit(String visitorName) throws IOException {
-//        //connections.remove(visitorName);
-//        var message = String.format("%s left the shop", visitorName);
-//        var notification = new Notification(Notification.Type.DEPARTURE, message);
-//        connections.broadcast(visitorName, notification);
-//    }
-//
-//    public void makeNoise(String petName, String sound) throws ResponseException {
-//        try {
-//            var message = String.format("%s says %s", petName, sound);
-//            var notification = new Notification(Notification.Type.NOISE, message);
-//            connections.broadcast("", notification);
-//        } catch (Exception ex) {
-//            throw new ResponseException(500, ex.getMessage());
-//        }
-//    }
+    public void joinPlayerResponse(int gameID, String authToken, Notification notification, LoadGame loadGame) throws IOException {
 
+        // send notification
+        for (var c : connections.connections.get((Integer) gameID).values()) {
+            if (c.session.isOpen()) {
+                if (!c.authToken.equals(authToken)) {
+                    c.send(new Gson().toJson(notification));
+                }
+            }
+        }
+
+        connections.connections.get(gameID).get(authToken).send(new Gson().toJson(loadGame));
+    }
+
+    public void sendError(String message, Session session) throws IOException{
+        session.getRemote().sendString(message);
+    }
 
     public String writeGame(Game game) {
         var gameName = game.getGameName();

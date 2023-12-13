@@ -341,10 +341,6 @@ public class serverFacade {
         }
     }
 
-
-    public void WSCommunicater() {
-
-    }
 //    public String updateGame() {
 //        try {
 //            var ws = new WSClient("ws://localhost:8080/connect");

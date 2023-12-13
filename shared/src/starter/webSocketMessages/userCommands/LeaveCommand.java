@@ -1,12 +1,12 @@
 package webSocketMessages.userCommands;
 
-public class JoinPlayerCommand extends UserGameCommand {
+public class LeaveCommand extends UserGameCommand {
 
     private int gameID;
     private String playerColor;
-    public JoinPlayerCommand(int gameID, String authToken, String color) {
+    public LeaveCommand(int gameID, String authToken, String color) {
         super(authToken);
-        this.commandType = CommandType.JOIN_PLAYER;
+        this.commandType = CommandType.LEAVE;
         this.gameID = gameID;
         this.playerColor = color;
     }
@@ -14,9 +14,6 @@ public class JoinPlayerCommand extends UserGameCommand {
     public int getGameID() {
         return this.gameID;
     }
-
-    public String getPlayerColor() {
-        return this.playerColor;
-    }
+    public String getPlayerColor() { return this.playerColor;}
 
 }
